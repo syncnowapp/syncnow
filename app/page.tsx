@@ -8,8 +8,9 @@ export default function Home() {
   return (
     <main className="page-container">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-primary opacity-[0.03] blur-[120px]" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-primary opacity-[0.03] blur-[120px]" />
+        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-primary opacity-[0.1] blur-[120px]" />
+        <div className="absolute top-[20%] right-[10%] w-[30%] h-[30%] rounded-full bg-secondary opacity-[0.05] blur-[100px]" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-primary opacity-[0.08] blur-[120px]" />
       </div>
 
       <motion.div
@@ -25,7 +26,7 @@ export default function Home() {
             transition={{ delay: 0.2, duration: 0.5 }}
             className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-semibold tracking-wider uppercase mb-4"
           >
-            <Zap className="w-3 h-3" />
+            <Zap className="w-4 h-4" />
             v0.1 MVP - Telepathy Training
           </motion.div>
 
@@ -37,12 +38,12 @@ export default function Home() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-16">
           <Link href="/match/create" className="group">
             <motion.div
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className="glass-card h-full flex flex-col items-start text-left gap-4 hover:border-primary/50 transition-colors"
+              className="glass-card h-full flex flex-col items-start text-left gap-6 p-10 hover:border-primary/50 transition-colors"
             >
               <div className="p-3 rounded-xl bg-primary/10 text-primary">
                 <Users className="w-6 h-6" />

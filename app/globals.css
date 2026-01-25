@@ -1,15 +1,17 @@
 :root {
-  --background: #050505;
+  --background: #0c071d;
   --foreground: #ffffff;
-  --surface: #121212;
-  --primary: #D4AF37;
-  --primary-glow: rgba(212, 175, 55, 0.3);
-  --secondary: #E5E4E2;
-  --text-secondary: #A0A0A0;
+  --surface: #1a0f3c;
+  --primary: #4C28E0;
+  --primary-glow: rgba(76, 40, 224, 0.4);
+  --secondary: #E028A5;
+  --text-secondary: #D073E0;
+  --accent-purple: #8928E0;
+  --accent-violet: #C528E0;
   --success: #22C55E;
   --error: #EF4444;
-  --glass: rgba(255, 255, 255, 0.05);
-  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass: rgba(255, 255, 255, 0.07);
+  --glass-border: rgba(255, 255, 255, 0.15);
 }
 
 /* Reset & Base */
@@ -22,6 +24,9 @@
 html,
 body {
   background-color: var(--background);
+  background-image:
+    radial-gradient(at 0% 0%, rgba(76, 40, 224, 0.2) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(224, 40, 165, 0.15) 0px, transparent 50%);
   color: var(--foreground);
   font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
   min-height: 100vh;
@@ -42,7 +47,7 @@ h6 {
 .page-container {
   min-height: 100vh;
   width: 100%;
-  max-width: 800px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 2rem 1.5rem;
   display: flex;
@@ -188,7 +193,7 @@ h6 {
 
 /* Components */
 .bg-radial-gradient {
-  background: radial-gradient(circle at center, #1a1a1a 0%, #050505 100%);
+  background: radial-gradient(circle at center, #1a0f3c 0%, #0c071d 100%);
   position: fixed;
   inset: 0;
   z-index: -2;
@@ -204,8 +209,8 @@ h6 {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%);
-  color: #000;
+  background: linear-gradient(135deg, #4C28E0 0%, #8928E0 100%);
+  color: #fff;
   border: none;
   padding: 1rem 1.5rem;
   border-radius: 12px;
@@ -247,12 +252,22 @@ h6 {
   border: 1px solid var(--glass-border) !important;
 }
 
-.bg-primary\/10 {
-  background: rgba(212, 175, 55, 0.1) !important;
+.bg-primary {
+  background-color: var(--primary) !important;
+  color: #000000 !important;
 }
 
-.border-primary {
-  border: 1px solid var(--primary) !important;
+.bg-white {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+}
+
+.selected-shape {
+  transform: scale(1.1) translateY(-5px) !important;
+  box-shadow: 0 10px 30px var(--primary-glow) !important;
+  border: 4px solid #ffffff !important;
+  outline: 2px solid var(--primary) !important;
+  z-index: 20;
 }
 
 .text-primary {
@@ -284,6 +299,10 @@ button .w-10,
 button .w-24,
 .w-12 {
   display: block;
+}
+
+button svg {
+  pointer-events: none !important;
 }
 
 /* Ensure icons inside buttons are solid black */
@@ -345,6 +364,38 @@ button .w-24,
   height: 12rem !important;
 }
 
+.w-16 {
+  width: 4rem !important;
+}
+
+.h-16 {
+  height: 4rem !important;
+}
+
+.w-20 {
+  width: 5rem !important;
+}
+
+.h-20 {
+  height: 5rem !important;
+}
+
+.w-32 {
+  width: 8rem !important;
+}
+
+.h-32 {
+  height: 8rem !important;
+}
+
+.w-40 {
+  width: 10rem !important;
+}
+
+.h-40 {
+  height: 10rem !important;
+}
+
 .w-24 {
   width: 6rem !important;
 }
@@ -359,6 +410,30 @@ button .w-24,
 
 .h-64 {
   height: 16rem !important;
+}
+
+.w-80 {
+  width: 20rem !important;
+}
+
+.h-80 {
+  height: 20rem !important;
+}
+
+.w-96 {
+  width: 24rem !important;
+}
+
+.h-96 {
+  height: 24rem !important;
+}
+
+.w-128 {
+  width: 32rem !important;
+}
+
+.h-128 {
+  height: 32rem !important;
 }
 
 .rounded-xl {
@@ -398,8 +473,9 @@ button .w-24,
 }
 
 .gold-text {
-  background: linear-gradient(135deg, #FFD700 0%, #D4AF37 100%);
+  background: linear-gradient(135deg, #D073E0 0%, #E028A5 100%);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 

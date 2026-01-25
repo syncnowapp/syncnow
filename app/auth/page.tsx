@@ -20,7 +20,7 @@ export default function AuthPage() {
     };
 
     return (
-        <main className="min-h-screen flex items-center justify-center p-6">
+        <main className="page-container">
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[60%] h-[60%] rounded-full bg-primary opacity-[0.05] blur-[120px]" />
             </div>

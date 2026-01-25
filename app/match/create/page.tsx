@@ -29,7 +29,7 @@ export default function CreateMatch() {
                 </Link>
 
                 <div className="space-y-2">
-                    <h1 className="text-4xl font-bold">Configura <span className="gold-text">Partita</span></h1>
+                    <h1 className="text-5xl md:text-6xl font-bold">Configura <span className="gold-text">Partita</span></h1>
                     <p className="text-text-secondary">Definisci i parametri dell'esperimento.</p>
                 </div>
 

@@ -13,7 +13,7 @@ export default function StatsPage() {
     ];
 
     return (
-        <main className="min-h-screen py-12 px-6">
+        <main className="page-container">
             <div className="max-w-xl mx-auto space-y-8">
                 <Link href="/" className="inline-flex items-center gap-2 text-text-secondary hover:text-primary transition-colors">
                     <ArrowLeft className="w-4 h-4" />
