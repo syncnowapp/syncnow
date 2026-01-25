@@ -1,0 +1,435 @@
+:root {
+  --background: #050505;
+  --foreground: #ffffff;
+  --surface: #121212;
+  --primary: #D4AF37;
+  --primary-glow: rgba(212, 175, 55, 0.3);
+  --secondary: #E5E4E2;
+  --text-secondary: #A0A0A0;
+  --success: #22C55E;
+  --error: #EF4444;
+  --glass: rgba(255, 255, 255, 0.05);
+  --glass-border: rgba(255, 255, 255, 0.1);
+}
+
+/* Reset & Base */
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+html,
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-outfit), sans-serif;
+  line-height: 1.1;
+}
+
+/* Layout Utilities */
+.page-container {
+  min-height: 100vh;
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.max-w-xl {
+  max-width: 36rem;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.max-w-2xl {
+  max-width: 42rem;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.mx-auto {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Flex & Grid */
+.flex {
+  display: flex !important;
+}
+
+.flex-col {
+  flex-direction: column !important;
+}
+
+.items-center {
+  align-items: center !important;
+}
+
+.items-start {
+  align-items: flex-start !important;
+}
+
+.justify-center {
+  justify-content: center !important;
+}
+
+.justify-between {
+  justify-content: space-between !important;
+}
+
+.gap-2 {
+  gap: 0.5rem !important;
+}
+
+.gap-3 {
+  gap: 0.75rem !important;
+}
+
+.gap-4 {
+  gap: 1rem !important;
+}
+
+.gap-8 {
+  gap: 2rem !important;
+}
+
+.grid {
+  display: grid !important;
+}
+
+.grid-cols-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+
+.grid-cols-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+}
+
+/* Spacing */
+.space-y-2>*+* {
+  margin-top: 0.5rem !important;
+}
+
+.space-y-4>*+* {
+  margin-top: 1rem !important;
+}
+
+.space-y-6>*+* {
+  margin-top: 1.5rem !important;
+}
+
+.space-y-8>*+* {
+  margin-top: 2.5rem !important;
+}
+
+.space-y-12>*+* {
+  margin-top: 4rem !important;
+}
+
+.p-3 {
+  padding: 0.75rem !important;
+}
+
+.p-4 {
+  padding: 1rem !important;
+}
+
+.p-6 {
+  padding: 1.5rem !important;
+}
+
+.px-3 {
+  padding-left: 0.75rem !important;
+  padding-right: 0.75rem !important;
+}
+
+.py-1 {
+  padding-top: 0.25rem !important;
+  padding-bottom: 0.25rem !important;
+}
+
+.py-4 {
+  padding-top: 1rem !important;
+  padding-bottom: 1rem !important;
+}
+
+.py-12 {
+  padding-top: 3rem !important;
+  padding-bottom: 3rem !important;
+}
+
+.mt-12 {
+  margin-top: 3rem !important;
+}
+
+.mb-1 {
+  margin-bottom: 0.25rem !important;
+}
+
+.mb-4 {
+  margin-bottom: 1rem !important;
+}
+
+/* Components */
+.bg-radial-gradient {
+  background: radial-gradient(circle at center, #1a1a1a 0%, #050505 100%);
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+}
+
+.glass-card {
+  background: var(--glass);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  border-radius: 24px;
+  padding: 2rem;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%);
+  color: #000;
+  border: none;
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 0.8rem;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 40px var(--primary-glow);
+}
+
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--secondary);
+  border: 1px solid var(--glass-border);
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Specific Style Helpers used in Screens */
+.bg-glass {
+  background: var(--glass) !important;
+}
+
+.border-glass-border {
+  border: 1px solid var(--glass-border) !important;
+}
+
+.bg-primary\/10 {
+  background: rgba(212, 175, 55, 0.1) !important;
+}
+
+.border-primary {
+  border: 1px solid var(--primary) !important;
+}
+
+.text-primary {
+  color: var(--primary) !important;
+}
+
+.text-text-secondary {
+  color: var(--text-secondary) !important;
+}
+
+.text-white\/50 {
+  color: rgba(255, 255, 255, 0.5) !important;
+}
+
+.border-white\/10 {
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Game Shapes & Icons */
+.aspect-square {
+  aspect-ratio: 1 / 1 !important;
+}
+
+.aspect-video {
+  aspect-ratio: 16 / 9 !important;
+}
+
+button .w-10,
+button .w-24,
+.w-12 {
+  display: block;
+}
+
+/* Ensure icons inside buttons are solid black */
+.bg-white svg {
+  color: #000000 !important;
+  fill: #000000 !important;
+  stroke: none !important;
+}
+
+.bg-primary svg {
+  color: #000000 !important;
+  fill: #000000 !important;
+  stroke: none !important;
+}
+
+/* Specific shape overrides for those that shouldn't be fully filled or need stroke */
+.bg-white svg.lucide-plus {
+  stroke: #000000 !important;
+  stroke-width: 4 !important;
+  fill: none !important;
+}
+
+.bg-white\/5 svg,
+.bg-glass svg {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
+  fill: none;
+}
+
+/* Utils */
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.italic {
+  font-style: italic !important;
+}
+
+.opacity-60 {
+  opacity: 0.6 !important;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums !important;
+}
+
+/* Grid fixes for game layout */
+.grid-cols-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+}
+
+.w-48 {
+  width: 12rem !important;
+}
+
+.h-48 {
+  height: 12rem !important;
+}
+
+.w-24 {
+  width: 6rem !important;
+}
+
+.h-24 {
+  height: 6rem !important;
+}
+
+.w-64 {
+  width: 16rem !important;
+}
+
+.h-64 {
+  height: 16rem !important;
+}
+
+.rounded-xl {
+  border-radius: 1rem !important;
+}
+
+.rounded-2xl {
+  border-radius: 1.5rem !important;
+}
+
+.rounded-full {
+  border-radius: 9999px !important;
+}
+
+.aspect-square {
+  aspect-ratio: 1 / 1 !important;
+}
+
+.font-bold {
+  font-weight: 700 !important;
+}
+
+.uppercase {
+  text-transform: uppercase !important;
+}
+
+.tracking-widest {
+  letter-spacing: 0.15em !important;
+}
+
+.text-xs {
+  font-size: 0.75rem !important;
+}
+
+.text-4xl {
+  font-size: 2.25rem !important;
+}
+
+.gold-text {
+  background: linear-gradient(135deg, #FFD700 0%, #D4AF37 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Animations */
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+
+  50% {
+    transform: scale(1.05);
+    opacity: 0.8;
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+}
+
+.telepathy-pulse {
+  animation: pulse 4s ease-in-out infinite;
+}
+
+/* Hover effects for game cards */
+.hover\:border-white\/20:hover {
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+.hover\:border-white\/30:hover {
+  border-color: rgba(255, 255, 255, 0.3) !important;
+}
