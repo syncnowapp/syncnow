@@ -418,7 +418,7 @@ function MatchContent({ params }: { params: Promise<{ id: string }> }) {
                                     {gameMode === 'shapes' ? 'Forma Selezionata' : 'Colore Selezionato'}
                                 </div>
                                 <div
-                                    className="w-64 h-64 flex items-center justify-center shadow-[0_0_80px_rgba(255,255,255,0.2)] p-10 rounded-3xl"
+                                    className="w-72 h-72 flex items-center justify-center shadow-2xl p-12 rounded-3xl"
                                     style={{
                                         backgroundColor: gameMode === 'colors'
                                             ? COLOR_OPTIONS.find(c => c.id === selectedItem)?.hex
@@ -517,7 +517,9 @@ function MatchContent({ params }: { params: Promise<{ id: string }> }) {
                                 Sincronizzazione
                             </h2>
                             <p className="text-text-secondary italic text-2xl leading-relaxed font-medium">
-                                "Svuota la mente. Elimina ogni distrazione. Concentrati sul partner."
+                                {role === 'transmitter'
+                                    ? '"Svuota la mente. Elimina ogni distrazione. Concentrati sull\'immagine scelta."'
+                                    : '"Svuota la mente. Elimina ogni distrazione. Concentrati."'}
                             </p>
                         </div>
                     </motion.div>

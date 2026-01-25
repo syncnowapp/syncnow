@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git pull:*)",
+      "Bash(npm run dev:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(node --version:*)",
+      "Bash(npm:*)",
+      "Bash(npx next lint:*)",
+      "Bash(npx tsc:*)",
+      "mcp__ide__getDiagnostics",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(netlify --version:*)",
+      "Bash(netlify login:*)",
+      "Bash(npx netlify-cli login)",
+      "Bash(npx netlify-cli deploy:*)",
+      "Bash(npx netlify-cli status:*)",
+      "Bash(git restore:*)"
+    ]
+  }
+}
