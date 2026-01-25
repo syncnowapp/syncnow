@@ -264,13 +264,14 @@ export default function CreateMatch() {
                                                 whileTap={{ scale: 0.95 }}
                                                 className={`aspect-square flex items-center justify-center transition-all duration-300 p-4 md:p-6 ${
                                                     selectedShape === shape.id
-                                                        ? "bg-primary text-black shadow-[0_0_80px_rgba(224,40,165,0.6)]"
-                                                        : "bg-white text-black hover:shadow-xl"
+                                                        ? "bg-primary shadow-[0_0_80px_rgba(224,40,165,0.6)]"
+                                                        : "bg-white hover:shadow-xl"
                                                 }`}
                                                 style={{ borderRadius: '0' }}
                                             >
                                                 <ShapeIcon
                                                     style={{ width: '85%', height: '85%' }}
+                                                    className="text-black"
                                                     fill="currentColor"
                                                     stroke="none"
                                                 />

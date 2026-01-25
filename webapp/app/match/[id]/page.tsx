@@ -274,7 +274,7 @@ function MatchContent({ params }: { params: Promise<{ id: string }> }) {
                                 </span>
                             </h2>
                             <p className="text-text-secondary text-base md:text-xl font-medium">
-                                Stabilizzazione della connessione neurale in corso.
+                                Inizia a concentrarti, tra poco si inizia!
                             </p>
                         </motion.div>
 
@@ -334,7 +334,7 @@ function MatchContent({ params }: { params: Promise<{ id: string }> }) {
                                     className="p-8 bg-glass border-2 border-white/10 text-center space-y-3 rounded-2xl"
                                 >
                                     <div className="text-[10px] uppercase text-text-secondary font-bold tracking-[0.2em]">
-                                        Ruolo Neurale
+                                        Ruolo
                                     </div>
                                     <div className="text-2xl font-bold capitalize text-white">
                                         {role === 'transmitter' ? 'Trasmettitore' : 'Ricevitore'}
@@ -360,7 +360,7 @@ function MatchContent({ params }: { params: Promise<{ id: string }> }) {
                                     className="p-8 bg-primary/5 border-2 border-primary/20 text-center space-y-4 rounded-2xl relative overflow-hidden"
                                 >
                                     <div className="text-[10px] uppercase text-primary font-bold tracking-[0.2em]">
-                                        Connessione Tab
+                                        Stato
                                     </div>
                                     <div className="flex items-center justify-center gap-12">
                                         <div className="flex flex-col items-center gap-2">
