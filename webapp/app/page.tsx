@@ -110,9 +110,9 @@ export default function Home() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 1.1, duration: 0.8 }}
-            className="text-lg md:text-xl text-text-secondary max-w-lg leading-relaxed"
+            className="text-lg md:text-xl text-text-secondary max-w-lg leading-relaxed text-center"
           >
-            Un esperimento serio per l'allenamento e l'osservazione della comunicazione non verbale.
+            Sei sicuro di aver bisogno del telefono cellulare?
           </motion.p>
 
           {/* Decorative brain wave indicator */}

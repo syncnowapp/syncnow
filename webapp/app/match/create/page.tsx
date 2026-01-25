@@ -90,7 +90,7 @@ export default function CreateMatch() {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                 >
-                    <Link href="/" className="inline-flex items-center gap-2 text-text-secondary hover:text-primary transition-colors group">
+                    <Link href="/" className="inline-flex items-center gap-2 text-white hover:text-primary transition-colors group">
                         <motion.div
                             whileHover={{ x: -5 }}
                             transition={{ type: "spring", stiffness: 300 }}
@@ -108,7 +108,7 @@ export default function CreateMatch() {
                     className="space-y-6"
                 >
                     <motion.h1
-                        className="text-6xl md:text-7xl font-bold tracking-tight leading-none"
+                        className="text-6xl md:text-7xl font-bold tracking-tight leading-none text-center"
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.3 }}
@@ -120,9 +120,9 @@ export default function CreateMatch() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.5 }}
-                        className="text-text-secondary text-lg font-medium tracking-wide"
+                        className="text-text-secondary text-lg font-medium tracking-wide text-center"
                     >
-                        Inizializzazione dei parametri dell'esperimento telepatetico.
+                        Imposta le caratteristiche del match.
                     </motion.p>
                 </motion.div>
 
@@ -176,7 +176,7 @@ export default function CreateMatch() {
                     >
                         <div className="flex items-center gap-3 text-xs font-bold uppercase tracking-[0.3em] text-primary">
                             <Radio className="w-5 h-5" />
-                            <span>2. Il tuo ruolo neurale</span>
+                            <span>2. Il tuo ruolo</span>
                         </div>
                         <div className="flex items-center justify-center gap-3 md:gap-12">
                             <motion.button
@@ -241,7 +241,7 @@ export default function CreateMatch() {
                             >
                                 <div className="flex items-center gap-3 text-xs font-bold uppercase tracking-[0.3em] text-primary">
                                     <Target className="w-5 h-5" />
-                                    <span>3. Selezione della Forma Target</span>
+                                    <span>3. Scegli l'immagine da trasmettere</span>
                                 </div>
                                 <div className="grid grid-cols-2 md:grid-cols-3 gap-1">
                                     {availableShapes.map((shape, idx) => {
@@ -299,7 +299,7 @@ export default function CreateMatch() {
                                                     ease: "easeInOut",
                                                 }}
                                             >
-                                                MANIFESTAZIONE BLOCCATA
+                                                MATCH IMPOSTATO
                                             </motion.p>
                                         </motion.div>
                                     )}
@@ -322,7 +322,7 @@ export default function CreateMatch() {
                             whileTap={role === 'transmitter' && !selectedShape ? {} : { scale: 0.95 }}
                             className={`w-full max-w-lg py-6 md:py-10 text-lg md:text-2xl tracking-[0.2em] md:tracking-[0.3em] font-bold uppercase transition-all duration-500 ${
                                 role === 'transmitter' && !selectedShape
-                                    ? "bg-white/5 text-white/20 cursor-not-allowed opacity-40"
+                                    ? "bg-white/5 text-white/60 cursor-not-allowed border-2 border-white/20"
                                     : "bg-primary text-black hover:shadow-[0_20px_80px_rgba(224,40,165,0.5)]"
                             }`}
                             style={{ borderRadius: '999px' }}

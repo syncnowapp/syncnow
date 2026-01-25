@@ -348,7 +348,7 @@ function MatchContent({ params }: { params: Promise<{ id: string }> }) {
                                     className="p-8 bg-glass border-2 border-white/10 text-center space-y-3 rounded-2xl"
                                 >
                                     <div className="text-[10px] uppercase text-text-secondary font-bold tracking-[0.2em]">
-                                        Densità Livello
+                                        Livello di difficoltà
                                     </div>
                                     <div className="text-3xl font-bold text-white">{level} FIGURE</div>
                                 </motion.div>
