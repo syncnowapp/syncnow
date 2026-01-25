@@ -6,54 +6,76 @@ import {
     ArrowLeft,
     Target,
     Eye,
-    Settings2,
     Circle,
     Square,
     Triangle,
-    Star,
-    Diamond,
-    Hexagon,
-    Plus,
-    Heart,
-    Moon,
-    Radio
+    Radio,
+    Palette
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-const SHAPES = [
-    { id: 'circle', icon: Circle },
-    { id: 'square', icon: Square },
-    { id: 'triangle', icon: Triangle },
-    { id: 'star', icon: Star },
-    { id: 'diamond', icon: Diamond },
-    { id: 'hexagon', icon: Hexagon },
-    { id: 'plus', icon: Plus },
-    { id: 'heart', icon: Heart },
-    { id: 'moon', icon: Moon },
+const SHAPE_OPTIONS = [
+    { id: 'circle', icon: Circle, label: 'Cerchio' },
+    { id: 'square', icon: Square, label: 'Quadrato' },
+    { id: 'triangle', icon: Triangle, label: 'Triangolo' },
+];
+
+const COLOR_OPTIONS = [
+    { id: 'yellow', hex: '#FFD700', label: 'Giallo' },
+    { id: 'blue', hex: '#4169E1', label: 'Blu' },
+    { id: 'red', hex: '#DC143C', label: 'Rosso' },
 ];
 
 export default function CreateMatch() {
     const router = useRouter();
-    const [level, setLevel] = useState(2);
     const [role, setRole] = useState<"transmitter" | "receiver">("transmitter");
-    const [selectedShape, setSelectedShape] = useState<string | null>(null);
+    const [selectedShapes, setSelectedShapes] = useState<string[]>([]);
+    const [selectedColors, setSelectedColors] = useState<string[]>([]);
+    const [selectedCombination, setSelectedCombination] = useState<string | null>(null);
+
+    const toggleShape = (shapeId: string) => {
+        if (selectedShapes.includes(shapeId)) {
+            setSelectedShapes(selectedShapes.filter(s => s !== shapeId));
+        } else if (selectedShapes.length < 3) {
+            setSelectedShapes([...selectedShapes, shapeId]);
+        }
+    };
+
+    const toggleColor = (colorId: string) => {
+        if (selectedColors.includes(colorId)) {
+            setSelectedColors(selectedColors.filter(c => c !== colorId));
+        } else if (selectedColors.length < 3) {
+            setSelectedColors([...selectedColors, colorId]);
+        }
+    };
 
     const handleCreate = () => {
-        if (role === 'transmitter' && !selectedShape) return;
+        if (role === 'transmitter' && !selectedCombination) return;
+        if (selectedShapes.length !== 3 || selectedColors.length !== 3) return;
 
         const matchId = Math.random().toString(36).substring(7).toUpperCase();
-        let targetUrl = `/match/${matchId}?role=${role}&level=${level}`;
+        let targetUrl = `/match/${matchId}?role=${role}&shapes=${selectedShapes.join(',')}&colors=${selectedColors.join(',')}`;
 
-        if (role === 'transmitter' && selectedShape) {
-            targetUrl += `&shape=${selectedShape}`;
+        if (role === 'transmitter' && selectedCombination) {
+            targetUrl += `&combination=${selectedCombination}`;
         }
 
         console.log("Redirecting to:", targetUrl);
         window.location.assign(targetUrl);
     };
 
-    const availableShapes = SHAPES.slice(0, level);
+    // Generate combinations (shape + color)
+    const combinations = selectedShapes.length === 3 && selectedColors.length === 3
+        ? selectedShapes.map((shape, idx) => ({
+            shape,
+            color: selectedColors[idx],
+            id: `${shape}-${selectedColors[idx]}`
+        }))
+        : [];
+
+    const isReady = selectedShapes.length === 3 && selectedColors.length === 3;
+    const canCreate = isReady && (role === 'receiver' || selectedCombination);
 
     return (
         <main className="page-container py-8 md:py-12">
@@ -127,7 +149,7 @@ export default function CreateMatch() {
                 </motion.div>
 
                 <div className="space-y-12 md:space-y-20 pb-12 md:pb-20">
-                    {/* Level Selection */}
+                    {/* Shape Selection */}
                     <motion.section
                         initial={{ opacity: 0, y: 40 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -135,54 +157,108 @@ export default function CreateMatch() {
                         className="space-y-8"
                     >
                         <div className="flex items-center gap-3 text-xs font-bold uppercase tracking-[0.3em] text-primary">
-                            <Settings2 className="w-5 h-5" />
-                            <span>1. Livello di difficoltà</span>
+                            <Target className="w-5 h-5" />
+                            <span>1. Scegli 3 trame</span>
                         </div>
-                        <div className="grid grid-cols-3 gap-6">
-                            {[2, 4, 8].map((l, idx) => (
-                                <motion.button
-                                    key={l}
-                                    initial={{ opacity: 0, scale: 0.8 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    transition={{ delay: 0.7 + (idx * 0.1), type: "spring" }}
-                                    onClick={() => {
-                                        setLevel(l);
-                                        setSelectedShape(null);
-                                    }}
-                                    whileHover={{ scale: 1.05, rotate: 2 }}
-                                    whileTap={{ scale: 0.95 }}
-                                    className={`p-12 border-4 transition-all duration-300 ${
-                                        level === l
-                                            ? "bg-primary border-primary text-black shadow-[0_0_60px_rgba(224,40,165,0.5)]"
-                                            : "bg-glass border-white/10 text-text-secondary hover:border-primary/30"
-                                    }`}
-                                    style={{ borderRadius: '24px' }}
-                                >
-                                    <div className="text-5xl font-bold leading-none">{l}</div>
-                                    <div className="text-[10px] uppercase font-bold tracking-[0.2em] mt-3 opacity-70">
-                                        Forme
-                                    </div>
-                                </motion.button>
-                            ))}
+                        <div className="grid grid-cols-3 gap-4">
+                            {SHAPE_OPTIONS.map((shape, idx) => {
+                                const ShapeIcon = shape.icon;
+                                const isSelected = selectedShapes.includes(shape.id);
+                                return (
+                                    <motion.button
+                                        key={shape.id}
+                                        initial={{ opacity: 0, scale: 0.8 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        transition={{ delay: 0.7 + (idx * 0.1), type: "spring" }}
+                                        onClick={() => toggleShape(shape.id)}
+                                        whileHover={{ scale: 1.05 }}
+                                        whileTap={{ scale: 0.95 }}
+                                        className={`aspect-square flex flex-col items-center justify-center gap-3 transition-all duration-300 p-6 md:p-8 ${
+                                            isSelected
+                                                ? "bg-primary shadow-[0_0_60px_rgba(224,40,165,0.5)]"
+                                                : "bg-white hover:shadow-xl"
+                                        }`}
+                                        style={{ borderRadius: '0' }}
+                                    >
+                                        <ShapeIcon
+                                            style={{ width: '60%', height: '60%' }}
+                                            className="text-black"
+                                            fill="currentColor"
+                                            stroke="none"
+                                        />
+                                        <span className="text-[9px] md:text-[10px] font-bold uppercase tracking-wider text-black">
+                                            {shape.label}
+                                        </span>
+                                    </motion.button>
+                                );
+                            })}
                         </div>
+                        <p className="text-center text-xs text-text-secondary/60">
+                            Seleziona tutte e 3 le forme
+                        </p>
+                    </motion.section>
+
+                    {/* Color Selection */}
+                    <motion.section
+                        initial={{ opacity: 0, y: 40 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.9 }}
+                        className="space-y-8"
+                    >
+                        <div className="flex items-center gap-3 text-xs font-bold uppercase tracking-[0.3em] text-primary">
+                            <Palette className="w-5 h-5" />
+                            <span>2. Scegli 3 colori</span>
+                        </div>
+                        <div className="grid grid-cols-3 gap-4">
+                            {COLOR_OPTIONS.map((color, idx) => {
+                                const isSelected = selectedColors.includes(color.id);
+                                return (
+                                    <motion.button
+                                        key={color.id}
+                                        initial={{ opacity: 0, scale: 0.8 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        transition={{ delay: 1 + (idx * 0.1), type: "spring" }}
+                                        onClick={() => toggleColor(color.id)}
+                                        whileHover={{ scale: 1.05 }}
+                                        whileTap={{ scale: 0.95 }}
+                                        className={`aspect-square flex flex-col items-center justify-center gap-3 transition-all duration-300 p-6 md:p-8 ${
+                                            isSelected
+                                                ? "shadow-[0_0_60px_rgba(224,40,165,0.4)] border-4 border-white"
+                                                : "hover:shadow-xl border-4 border-transparent"
+                                        }`}
+                                        style={{
+                                            backgroundColor: color.hex,
+                                            borderRadius: '0'
+                                        }}
+                                    >
+                                        <span className="text-xs md:text-sm font-bold uppercase tracking-wider text-white drop-shadow-lg">
+                                            {color.label}
+                                        </span>
+                                    </motion.button>
+                                );
+                            })}
+                        </div>
+                        <p className="text-center text-xs text-text-secondary/60">
+                            Seleziona tutti e 3 i colori
+                        </p>
                     </motion.section>
 
                     {/* Role Selection */}
                     <motion.section
                         initial={{ opacity: 0, y: 40 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 1 }}
+                        transition={{ delay: 1.2 }}
                         className="space-y-8"
                     >
                         <div className="flex items-center gap-3 text-xs font-bold uppercase tracking-[0.3em] text-primary">
                             <Radio className="w-5 h-5" />
-                            <span>2. Il tuo ruolo</span>
+                            <span>3. Il tuo ruolo</span>
                         </div>
                         <div className="flex items-center justify-center gap-3 md:gap-12">
                             <motion.button
                                 initial={{ opacity: 0, x: -30 }}
                                 animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: 1.1, type: "spring" }}
+                                transition={{ delay: 1.3, type: "spring" }}
                                 onClick={() => setRole("transmitter")}
                                 whileHover={{ scale: 1.03, rotate: -1 }}
                                 whileTap={{ scale: 0.97 }}
@@ -204,10 +280,10 @@ export default function CreateMatch() {
                             <motion.button
                                 initial={{ opacity: 0, x: 30 }}
                                 animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: 1.2, type: "spring" }}
+                                transition={{ delay: 1.4, type: "spring" }}
                                 onClick={() => {
                                     setRole("receiver");
-                                    setSelectedShape(null);
+                                    setSelectedCombination(null);
                                 }}
                                 whileHover={{ scale: 1.03, rotate: 1 }}
                                 whileTap={{ scale: 0.97 }}
@@ -228,11 +304,11 @@ export default function CreateMatch() {
                         </div>
                     </motion.section>
 
-                    {/* Shape Selection (Transmitter Only) */}
+                    {/* Combination Selection (Transmitter Only) */}
                     <AnimatePresence>
-                        {role === 'transmitter' && (
+                        {role === 'transmitter' && isReady && (
                             <motion.section
-                                key={`shapes-${level}`}
+                                key="combinations"
                                 initial={{ opacity: 0, y: 40 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: 40 }}
@@ -241,37 +317,36 @@ export default function CreateMatch() {
                             >
                                 <div className="flex items-center gap-3 text-xs font-bold uppercase tracking-[0.3em] text-primary">
                                     <Target className="w-5 h-5" />
-                                    <span>3. Scegli l'immagine da trasmettere</span>
+                                    <span>4. Scegli l'immagine da trasmettere</span>
                                 </div>
-                                <div className="grid grid-cols-2 md:grid-cols-3 gap-1">
-                                    {availableShapes.map((shape, idx) => {
-                                        const ShapeIcon = shape.icon;
+                                <div className="grid grid-cols-3 gap-2">
+                                    {combinations.map((combo, idx) => {
+                                        const ShapeIcon = SHAPE_OPTIONS.find(s => s.id === combo.shape)?.icon || Circle;
+                                        const color = COLOR_OPTIONS.find(c => c.id === combo.color);
+                                        const isSelected = selectedCombination === combo.id;
+
                                         return (
                                             <motion.button
-                                                key={shape.id}
+                                                key={combo.id}
                                                 initial={{ opacity: 0, scale: 0.8 }}
                                                 animate={{ opacity: 1, scale: 1 }}
-                                                transition={{
-                                                    delay: idx * 0.05,
-                                                    type: "spring",
-                                                    stiffness: 200
-                                                }}
-                                                type="button"
-                                                onClick={() => setSelectedShape(shape.id)}
-                                                whileHover={{
-                                                    scale: 1.05,
-                                                }}
+                                                transition={{ delay: idx * 0.05, type: "spring" }}
+                                                onClick={() => setSelectedCombination(combo.id)}
+                                                whileHover={{ scale: 1.05 }}
                                                 whileTap={{ scale: 0.95 }}
                                                 className={`aspect-square flex items-center justify-center transition-all duration-300 p-4 md:p-6 ${
-                                                    selectedShape === shape.id
-                                                        ? "bg-primary shadow-[0_0_80px_rgba(224,40,165,0.6)]"
-                                                        : "bg-white hover:shadow-xl"
+                                                    isSelected
+                                                        ? "shadow-[0_0_80px_rgba(224,40,165,0.6)] border-4 border-white"
+                                                        : "hover:shadow-xl border-4 border-transparent"
                                                 }`}
-                                                style={{ borderRadius: '0' }}
+                                                style={{
+                                                    backgroundColor: color?.hex,
+                                                    borderRadius: '0'
+                                                }}
                                             >
                                                 <ShapeIcon
                                                     style={{ width: '85%', height: '85%' }}
-                                                    className="text-black"
+                                                    className="text-white drop-shadow-2xl"
                                                     fill="currentColor"
                                                     stroke="none"
                                                 />
@@ -280,7 +355,7 @@ export default function CreateMatch() {
                                     })}
                                 </div>
                                 <AnimatePresence>
-                                    {selectedShape && (
+                                    {selectedCombination && (
                                         <motion.div
                                             initial={{ opacity: 0, y: -10 }}
                                             animate={{ opacity: 1, y: 0 }}
@@ -312,16 +387,16 @@ export default function CreateMatch() {
                     <motion.div
                         initial={{ opacity: 0, y: 40 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: role === 'transmitter' ? 2 : 1.4 }}
+                        transition={{ delay: role === 'transmitter' ? 2 : 1.6 }}
                         className="flex flex-col items-center gap-12 pt-16 border-t-2 border-white/5"
                     >
                         <motion.button
                             onClick={handleCreate}
-                            disabled={role === 'transmitter' && !selectedShape}
-                            whileHover={role === 'transmitter' && !selectedShape ? {} : { scale: 1.05 }}
-                            whileTap={role === 'transmitter' && !selectedShape ? {} : { scale: 0.95 }}
+                            disabled={!canCreate}
+                            whileHover={!canCreate ? {} : { scale: 1.05 }}
+                            whileTap={!canCreate ? {} : { scale: 0.95 }}
                             className={`w-full max-w-lg py-6 md:py-10 text-lg md:text-2xl tracking-[0.2em] md:tracking-[0.3em] font-bold uppercase transition-all duration-500 ${
-                                role === 'transmitter' && !selectedShape
+                                !canCreate
                                     ? "bg-white/5 text-white/60 cursor-not-allowed border-2 border-white/20"
                                     : "bg-primary text-black hover:shadow-[0_20px_80px_rgba(224,40,165,0.5)]"
                             }`}
