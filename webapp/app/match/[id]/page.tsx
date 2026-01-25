@@ -678,7 +678,7 @@ function MatchContent({ params }: { params: Promise<{ id: string }> }) {
                                     Trasmesso
                                 </div>
                                 <div
-                                    className="w-[80vw] h-[80vw] md:w-80 md:h-80 max-w-[400px] max-h-[400px] mx-auto flex items-center justify-center shadow-2xl p-8 md:p-10 rounded-3xl"
+                                    className="w-[60vw] h-[60vw] md:w-80 md:h-80 max-w-[400px] max-h-[400px] mx-auto flex items-center justify-center shadow-2xl p-8 md:p-10 rounded-3xl"
                                     style={{
                                         backgroundColor: gameMode === 'colors'
                                             ? COLOR_OPTIONS.find(c => c.id === selectedItem)?.hex
@@ -702,7 +702,7 @@ function MatchContent({ params }: { params: Promise<{ id: string }> }) {
                                     Ricevuto
                                 </div>
                                 <div
-                                    className={`w-[80vw] h-[80vw] md:w-80 md:h-80 max-w-[400px] max-h-[400px] mx-auto flex items-center justify-center shadow-2xl p-8 md:p-10 rounded-3xl ${
+                                    className={`w-[60vw] h-[60vw] md:w-80 md:h-80 max-w-[400px] max-h-[400px] mx-auto flex items-center justify-center shadow-2xl p-8 md:p-10 rounded-3xl ${
                                         selectedItem === transmittedItem
                                             ? "border-8 border-primary/60"
                                             : "border-8 border-white/20"
