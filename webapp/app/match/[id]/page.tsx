@@ -34,6 +34,12 @@ const SHAPES = [
     { id: 'moon', icon: Moon },
 ];
 
+const COLOR_OPTIONS = [
+    { id: 'yellow', hex: '#FFD700', label: 'Giallo' },
+    { id: 'blue', hex: '#4169E1', label: 'Blu' },
+    { id: 'red', hex: '#DC143C', label: 'Rosso' },
+];
+
 type GameState = 'lobby' | 'sync' | 'transmission' | 'result';
 
 function MatchContent({ params }: { params: Promise<{ id: string }> }) {
@@ -43,10 +49,10 @@ function MatchContent({ params }: { params: Promise<{ id: string }> }) {
 
     const [gameState, setGameState] = useState<GameState>('lobby');
     const [role, setRole] = useState<'transmitter' | 'receiver'>('transmitter');
-    const [level, setLevel] = useState(3);
+    const [gameMode, setGameMode] = useState<'shapes' | 'colors'>('shapes');
     const [timer, setTimer] = useState(0);
-    const [selectedShape, setSelectedShape] = useState<string | null>(null);
-    const [transmittedShape, setTransmittedShape] = useState<string | null>(null);
+    const [selectedItem, setSelectedItem] = useState<string | null>(null);
+    const [transmittedItem, setTransmittedItem] = useState<string | null>(null);
     const [copied, setCopied] = useState(false);
 
     const [isReady, setIsReady] = useState(false);
@@ -66,12 +72,12 @@ function MatchContent({ params }: { params: Promise<{ id: string }> }) {
             if (role === 'transmitter') {
                 setPartnerReady(!!currentReady.receiver);
                 if (currentData.receiverChoice) {
-                    setTransmittedShape(currentData.receiverChoice);
+                    setTransmittedItem(currentData.receiverChoice);
                     if (gameState === 'transmission') setGameState('result');
                 }
             } else {
                 setPartnerReady(!!currentReady.transmitter);
-                if (currentData.transmitterChoice) setSelectedShape(currentData.transmitterChoice);
+                if (currentData.transmitterChoice) setSelectedItem(currentData.transmitterChoice);
             }
         };
 
@@ -82,25 +88,25 @@ function MatchContent({ params }: { params: Promise<{ id: string }> }) {
         }));
 
         const currentData = JSON.parse(localStorage.getItem(dataKey) || '{}');
-        if (role === 'transmitter' && selectedShape) {
-            localStorage.setItem(dataKey, JSON.stringify({ ...currentData, transmitterChoice: selectedShape }));
-        } else if (role === 'receiver' && transmittedShape) {
-            localStorage.setItem(dataKey, JSON.stringify({ ...currentData, receiverChoice: transmittedShape }));
+        if (role === 'transmitter' && selectedItem) {
+            localStorage.setItem(dataKey, JSON.stringify({ ...currentData, transmitterChoice: selectedItem }));
+        } else if (role === 'receiver' && transmittedItem) {
+            localStorage.setItem(dataKey, JSON.stringify({ ...currentData, receiverChoice: transmittedItem }));
         }
 
         const interval = setInterval(updateSync, 500);
         return () => clearInterval(interval);
-    }, [isReady, role, isMounted, resolvedParams.id, selectedShape, transmittedShape, gameState]);
+    }, [isReady, role, isMounted, resolvedParams.id, selectedItem, transmittedItem, gameState]);
 
     useEffect(() => {
         setIsMounted(true);
         const urlRole = searchParams.get('role') as 'transmitter' | 'receiver';
-        const urlLevel = parseInt(searchParams.get('level') || '3');
-        const urlShape = searchParams.get('shape');
+        const urlMode = searchParams.get('mode') as 'shapes' | 'colors';
+        const urlItem = searchParams.get('item');
 
         if (urlRole) setRole(urlRole);
-        if (urlLevel) setLevel(urlLevel);
-        if (urlRole === 'transmitter' && urlShape) setSelectedShape(urlShape);
+        if (urlMode) setGameMode(urlMode);
+        if (urlRole === 'transmitter' && urlItem) setSelectedItem(urlItem);
     }, [searchParams]);
 
     useEffect(() => {
@@ -126,7 +132,7 @@ function MatchContent({ params }: { params: Promise<{ id: string }> }) {
     }, [gameState, timer]);
 
     const toggleReady = () => {
-        if (role === 'transmitter' && !selectedShape) return;
+        if (role === 'transmitter' && !selectedItem) return;
         setIsReady(!isReady);
     };
 
@@ -137,8 +143,8 @@ function MatchContent({ params }: { params: Promise<{ id: string }> }) {
         } else if (url.includes('role=receiver')) {
             url = url.replace('role=receiver', 'role=transmitter');
         }
-        if (url.includes('&shape=')) {
-            url = url.split('&shape=')[0];
+        if (url.includes('&item=')) {
+            url = url.split('&item=')[0];
         }
 
         if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -156,8 +162,8 @@ function MatchContent({ params }: { params: Promise<{ id: string }> }) {
         } else if (url.includes('role=receiver')) {
             url = url.replace('role=receiver', 'role=transmitter');
         }
-        if (url.includes('&shape=')) {
-            url = url.split('&shape=')[0];
+        if (url.includes('&item=')) {
+            url = url.split('&item=')[0];
         }
 
         const message = encodeURIComponent(`🧠 Unisciti a me su SyncNow per un esperimento di telepatia!\n\n${url}`);
@@ -165,7 +171,9 @@ function MatchContent({ params }: { params: Promise<{ id: string }> }) {
         window.open(whatsappUrl, '_blank');
     };
 
-    const availableShapes = SHAPES.slice(0, level);
+    const availableItems = gameMode === 'shapes'
+        ? SHAPES.slice(0, 3).map(s => ({ ...s, type: 'shape' as const }))
+        : COLOR_OPTIONS.map(c => ({ ...c, type: 'color' as const }));
 
     if (!isMounted) {
         return (
@@ -290,7 +298,7 @@ function MatchContent({ params }: { params: Promise<{ id: string }> }) {
                             </div>
                             <div className="w-full flex items-center gap-3 bg-black/60 p-4 md:p-5 rounded-2xl border-2 border-white/10">
                                 <code className="flex-1 text-left text-xs md:text-sm font-bold truncate text-primary/90 tracking-wide">
-                                    {isMounted ? window.location.href.split('?')[0] + '?role=' + (role === 'transmitter' ? 'receiver' : 'transmitter') + '&level=' + level : 'Loading...'}
+                                    {isMounted ? window.location.href.split('?')[0] + '?role=' + (role === 'transmitter' ? 'receiver' : 'transmitter') + '&mode=' + gameMode : 'Loading...'}
                                 </code>
                                 <motion.button
                                     onClick={shareToWhatsApp}
@@ -348,9 +356,9 @@ function MatchContent({ params }: { params: Promise<{ id: string }> }) {
                                     className="p-8 bg-glass border-2 border-white/10 text-center space-y-3 rounded-2xl"
                                 >
                                     <div className="text-[10px] uppercase text-text-secondary font-bold tracking-[0.2em]">
-                                        Livello di difficoltà
+                                        Modalità
                                     </div>
-                                    <div className="text-3xl font-bold text-white">{level} FIGURE</div>
+                                    <div className="text-3xl font-bold text-white">{gameMode === 'shapes' ? 'FORME' : 'COLORI'}</div>
                                 </motion.div>
 
                                 <motion.div
@@ -398,8 +406,8 @@ function MatchContent({ params }: { params: Promise<{ id: string }> }) {
                             </div>
                         </motion.div>
 
-                        {/* Selected Shape Preview (Transmitter) */}
-                        {role === 'transmitter' && selectedShape && (
+                        {/* Selected Item Preview (Transmitter) */}
+                        {role === 'transmitter' && selectedItem && (
                             <motion.div
                                 initial={{ opacity: 0, scale: 0.9 }}
                                 animate={{ opacity: 1, scale: 1 }}
@@ -407,23 +415,34 @@ function MatchContent({ params }: { params: Promise<{ id: string }> }) {
                                 className="w-full flex flex-col items-center gap-8"
                             >
                                 <div className="text-xs uppercase font-bold tracking-[0.4em] text-primary">
-                                    Figura Selezionata
+                                    {gameMode === 'shapes' ? 'Forma Selezionata' : 'Colore Selezionato'}
                                 </div>
-                                <motion.div
-                                    whileHover={{ scale: 1.05, rotate: 5 }}
-                                    className="w-64 h-64 bg-white flex items-center justify-center text-black shadow-[0_0_80px_rgba(255,255,255,0.2)] p-10 rounded-3xl"
+                                <div
+                                    className="w-64 h-64 flex items-center justify-center shadow-[0_0_80px_rgba(255,255,255,0.2)] p-10 rounded-3xl"
+                                    style={{
+                                        backgroundColor: gameMode === 'colors'
+                                            ? COLOR_OPTIONS.find(c => c.id === selectedItem)?.hex
+                                            : 'white'
+                                    }}
                                 >
-                                    {(() => {
-                                        const ShapeIcon = SHAPES.find(s => s.id === selectedShape)?.icon || Circle;
-                                        return <ShapeIcon style={{ width: '100%', height: '100%' }} fill="currentColor" />;
+                                    {gameMode === 'shapes' && (() => {
+                                        const ShapeIcon = SHAPES.find(s => s.id === selectedItem)?.icon || Circle;
+                                        return <ShapeIcon style={{ width: '100%', height: '100%', color: '#000000' }} fill="currentColor" />;
                                     })()}
-                                </motion.div>
-                                <button
+                                    {gameMode === 'colors' && (
+                                        <span className="text-2xl font-bold uppercase tracking-wider text-white drop-shadow-2xl">
+                                            {COLOR_OPTIONS.find(c => c.id === selectedItem)?.label}
+                                        </span>
+                                    )}
+                                </div>
+                                <motion.button
                                     onClick={() => router.back()}
-                                    className="text-xs font-bold uppercase tracking-[0.3em] text-text-secondary hover:text-white transition-colors border-b-2 border-white/10 hover:border-primary/50 pb-2"
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    className="px-8 py-4 text-xs font-bold uppercase tracking-[0.3em] text-black bg-white hover:bg-white/90 transition-all rounded-full shadow-lg"
                                 >
                                     Modifica Configurazione
-                                </button>
+                                </motion.button>
                             </motion.div>
                         )}
 
@@ -436,14 +455,14 @@ function MatchContent({ params }: { params: Promise<{ id: string }> }) {
                         >
                             <motion.button
                                 onClick={toggleReady}
-                                disabled={role === 'transmitter' && !selectedShape}
+                                disabled={role === 'transmitter' && !selectedItem}
                                 whileHover={isReady ? {} : { scale: 1.02 }}
                                 whileTap={isReady ? {} : { scale: 0.98 }}
                                 className={`w-full py-10 text-2xl tracking-[0.3em] font-bold uppercase transition-all duration-500 rounded-full ${
                                     isReady
                                         ? "bg-glass border-2 border-primary/30 text-primary/60 shadow-inner"
-                                        : role === 'transmitter' && !selectedShape
-                                        ? "bg-white/5 text-white/20 cursor-not-allowed"
+                                        : role === 'transmitter' && !selectedItem
+                                        ? "bg-white/5 text-white/60 border-2 border-white/20 cursor-not-allowed"
                                         : "bg-primary text-black hover:shadow-[0_20px_60px_rgba(224,40,165,0.5)] border-2 border-transparent"
                                 }`}
                             >
@@ -531,28 +550,26 @@ function MatchContent({ params }: { params: Promise<{ id: string }> }) {
                                 <div className="text-2xl font-bold uppercase tracking-[0.4em] text-text-secondary">
                                     Trasmissione in Corso
                                 </div>
-                                <motion.div
-                                    className="w-[70vmin] h-[70vmin] max-w-[600px] max-h-[600px] bg-white flex items-center justify-center text-black shadow-[0_0_120px_rgba(224,40,165,0.4)] p-16 rounded-3xl"
-                                    animate={{
-                                        boxShadow: [
-                                            "0 0 120px rgba(224,40,165,0.4)",
-                                            "0 0 160px rgba(137,40,224,0.6)",
-                                            "0 0 120px rgba(224,40,165,0.4)",
-                                        ],
-                                    }}
-                                    transition={{
-                                        duration: 3,
-                                        repeat: Infinity,
-                                        ease: "easeInOut",
+                                <div
+                                    className="w-[85vmin] h-[85vmin] md:w-[70vmin] md:h-[70vmin] max-w-[700px] max-h-[700px] flex items-center justify-center shadow-2xl p-12 md:p-16 rounded-3xl"
+                                    style={{
+                                        backgroundColor: gameMode === 'colors'
+                                            ? COLOR_OPTIONS.find(c => c.id === selectedItem)?.hex
+                                            : 'white'
                                     }}
                                 >
-                                    {(() => {
-                                        const ShapeIcon = SHAPES.find(s => s.id === selectedShape)?.icon || Circle;
-                                        return <ShapeIcon style={{ width: '100%', height: '100%' }} fill="currentColor" />;
+                                    {gameMode === 'shapes' && (() => {
+                                        const ShapeIcon = SHAPES.find(s => s.id === selectedItem)?.icon || Circle;
+                                        return <ShapeIcon style={{ width: '100%', height: '100%', color: '#000000' }} fill="currentColor" />;
                                     })()}
-                                </motion.div>
+                                    {gameMode === 'colors' && (
+                                        <span className="text-5xl md:text-7xl font-bold uppercase tracking-wider text-white drop-shadow-2xl">
+                                            {COLOR_OPTIONS.find(c => c.id === selectedItem)?.label}
+                                        </span>
+                                    )}
+                                </div>
                                 <p className="text-text-secondary text-lg font-medium italic uppercase tracking-[0.2em]">
-                                    Proietta questa immagine nel campo neurale.
+                                    Concentrati su questa immagine.
                                 </p>
                             </motion.div>
                         ) : (
@@ -565,16 +582,19 @@ function MatchContent({ params }: { params: Promise<{ id: string }> }) {
                                     Cosa Percepisci?
                                 </div>
                                 <div className="grid grid-cols-3 gap-8 w-full max-w-4xl">
-                                    {availableShapes.map((shape, idx) => {
-                                        const ShapeIcon = shape.icon;
+                                    {availableItems.map((item, idx) => {
+                                        const isShape = item.type === 'shape';
+                                        const ShapeIcon = isShape ? item.icon : null;
+                                        const colorHex = !isShape ? (item as any).hex : null;
+                                        const label = !isShape ? (item as any).label : null;
                                         return (
                                             <motion.button
-                                                key={shape.id}
+                                                key={item.id}
                                                 initial={{ opacity: 0, scale: 0.8 }}
                                                 animate={{ opacity: 1, scale: 1 }}
                                                 transition={{ delay: idx * 0.05, type: "spring" }}
                                                 onClick={() => {
-                                                    setTransmittedShape(shape.id);
+                                                    setTransmittedItem(item.id);
                                                     setGameState('result');
                                                 }}
                                                 whileHover={{
@@ -583,21 +603,33 @@ function MatchContent({ params }: { params: Promise<{ id: string }> }) {
                                                 }}
                                                 whileTap={{ scale: 0.9 }}
                                                 className={`aspect-square border-4 flex items-center justify-center transition-all p-8 rounded-3xl ${
-                                                    transmittedShape === shape.id
-                                                        ? "bg-primary border-white text-black shadow-[0_0_80px_rgba(224,40,165,0.6)]"
-                                                        : "bg-white/95 text-black border-transparent hover:bg-white hover:shadow-[0_20px_60px_rgba(255,255,255,0.3)]"
+                                                    transmittedItem === item.id
+                                                        ? "border-white shadow-[0_0_80px_rgba(224,40,165,0.6)]"
+                                                        : "border-transparent hover:shadow-[0_20px_60px_rgba(255,255,255,0.3)]"
                                                 }`}
+                                                style={{
+                                                    backgroundColor: transmittedItem === item.id
+                                                        ? '#E028A5'
+                                                        : (isShape ? 'rgba(255, 255, 255, 0.95)' : colorHex)
+                                                }}
                                             >
-                                                <ShapeIcon
-                                                    style={{ width: '70%', height: '70%' }}
-                                                    fill="currentColor"
-                                                />
+                                                {isShape && ShapeIcon && (
+                                                    <ShapeIcon
+                                                        style={{ width: '70%', height: '70%', color: '#000000' }}
+                                                        fill="currentColor"
+                                                    />
+                                                )}
+                                                {!isShape && (
+                                                    <span className="text-xl md:text-2xl font-bold uppercase tracking-wider text-white drop-shadow-2xl">
+                                                        {label}
+                                                    </span>
+                                                )}
                                             </motion.button>
                                         );
                                     })}
                                 </div>
                                 <p className="text-text-secondary text-lg font-medium italic uppercase tracking-[0.2em] pt-6">
-                                    Scegli la figura che si è manifestata.
+                                    Scegli {gameMode === 'shapes' ? 'la forma' : 'il colore'} che si è manifestato.
                                 </p>
                             </motion.div>
                         )}
@@ -624,12 +656,12 @@ function MatchContent({ params }: { params: Promise<{ id: string }> }) {
                                 animate={{ scale: 1, opacity: 1 }}
                                 transition={{ delay: 0.2, type: "spring" }}
                                 className={`text-2xl font-bold tracking-[0.3em] uppercase py-6 px-16 border-4 rounded-full ${
-                                    selectedShape === transmittedShape
+                                    selectedItem === transmittedItem
                                         ? "bg-primary/20 text-primary border-primary shadow-[0_0_60px_rgba(224,40,165,0.4)]"
                                         : "bg-white/5 text-text-secondary border-white/20"
                                 }`}
                             >
-                                {selectedShape === transmittedShape ? "Connessione Stabilita" : "Segnale Interrotto"}
+                                {selectedItem === transmittedItem ? "Connessione Stabilita" : "Segnale Interrotto"}
                             </motion.div>
                         </motion.div>
 
@@ -643,38 +675,58 @@ function MatchContent({ params }: { params: Promise<{ id: string }> }) {
                                 <div className="text-xs uppercase font-bold tracking-[0.4em] text-text-secondary">
                                     Trasmesso
                                 </div>
-                                <motion.div
-                                    whileHover={{ scale: 1.05, rotate: -2 }}
-                                    className="w-72 h-72 bg-white flex items-center justify-center text-black shadow-2xl p-12 rounded-3xl"
+                                <div
+                                    className="w-72 h-72 flex items-center justify-center shadow-2xl p-12 rounded-3xl"
+                                    style={{
+                                        backgroundColor: gameMode === 'colors'
+                                            ? COLOR_OPTIONS.find(c => c.id === selectedItem)?.hex
+                                            : 'white'
+                                    }}
                                 >
-                                    {(() => {
-                                        const ShapeIcon = SHAPES.find(s => s.id === selectedShape)?.icon || Circle;
-                                        return <ShapeIcon style={{ width: '100%', height: '100%' }} fill="currentColor" />;
+                                    {gameMode === 'shapes' && (() => {
+                                        const ShapeIcon = SHAPES.find(s => s.id === selectedItem)?.icon || Circle;
+                                        return <ShapeIcon style={{ width: '100%', height: '100%', color: '#000000' }} fill="currentColor" />;
                                     })()}
-                                </motion.div>
+                                    {gameMode === 'colors' && (
+                                        <span className="text-3xl md:text-4xl font-bold uppercase tracking-wider text-white drop-shadow-2xl">
+                                            {COLOR_OPTIONS.find(c => c.id === selectedItem)?.label}
+                                        </span>
+                                    )}
+                                </div>
                             </div>
 
                             <div className="text-center space-y-6">
                                 <div className="text-xs uppercase font-bold tracking-[0.4em] text-text-secondary">
                                     Ricevuto
                                 </div>
-                                <motion.div
-                                    whileHover={{ scale: 1.05, rotate: 2 }}
-                                    className={`w-72 h-72 flex items-center justify-center bg-white text-black shadow-2xl p-12 rounded-3xl ${
-                                        selectedShape === transmittedShape
+                                <div
+                                    className={`w-72 h-72 flex items-center justify-center shadow-2xl p-12 rounded-3xl ${
+                                        selectedItem === transmittedItem
                                             ? "border-8 border-primary/60"
                                             : "border-8 border-white/20"
                                     }`}
+                                    style={{
+                                        backgroundColor: transmittedItem && gameMode === 'colors'
+                                            ? COLOR_OPTIONS.find(c => c.id === transmittedItem)?.hex
+                                            : 'white'
+                                    }}
                                 >
-                                    {(() => {
-                                        const ShapeIcon = SHAPES.find(s => s.id === transmittedShape)?.icon || Circle;
-                                        return transmittedShape ? (
-                                            <ShapeIcon style={{ width: '100%', height: '100%' }} fill="currentColor" />
-                                        ) : (
-                                            <div className="text-9xl font-bold">?</div>
-                                        );
-                                    })()}
-                                </motion.div>
+                                    {transmittedItem ? (
+                                        <>
+                                            {gameMode === 'shapes' && (() => {
+                                                const ShapeIcon = SHAPES.find(s => s.id === transmittedItem)?.icon || Circle;
+                                                return <ShapeIcon style={{ width: '100%', height: '100%', color: '#000000' }} fill="currentColor" />;
+                                            })()}
+                                            {gameMode === 'colors' && (
+                                                <span className="text-3xl md:text-4xl font-bold uppercase tracking-wider text-white drop-shadow-2xl">
+                                                    {COLOR_OPTIONS.find(c => c.id === transmittedItem)?.label}
+                                                </span>
+                                            )}
+                                        </>
+                                    ) : (
+                                        <div className="text-9xl font-bold text-black">?</div>
+                                    )}
+                                </div>
                             </div>
                         </motion.div>
 
@@ -685,15 +737,7 @@ function MatchContent({ params }: { params: Promise<{ id: string }> }) {
                             className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-8 pt-12"
                         >
                             <motion.button
-                                onClick={() => {
-                                    const syncKey = `match_${resolvedParams.id}_ready`;
-                                    const dataKey = `match_${resolvedParams.id}_data`;
-                                    localStorage.removeItem(syncKey);
-                                    localStorage.removeItem(dataKey);
-                                    setGameState('lobby');
-                                    setIsReady(false);
-                                    setTransmittedShape(null);
-                                }}
+                                onClick={() => router.push('/match/create')}
                                 whileHover={{ scale: 1.03 }}
                                 whileTap={{ scale: 0.97 }}
                                 className="bg-primary text-black py-8 text-xl font-bold tracking-[0.3em] uppercase hover:shadow-[0_20px_60px_rgba(224,40,165,0.5)] transition-all rounded-full"
