@@ -265,12 +265,15 @@ function MatchContent({ params }: { params: Promise<{ id: string }> }) {
                             initial={{ opacity: 0, scale: 0.9 }}
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ delay: 0.2 }}
-                            className="space-y-6"
+                            className="space-y-4 md:space-y-6 px-4"
                         >
-                            <h2 className="text-5xl md:text-7xl font-bold uppercase tracking-tight">
-                                Lobby <span className="gold-text">Sincronizzazione</span>
+                            <h2 className="text-3xl md:text-5xl lg:text-7xl font-bold uppercase tracking-tight leading-tight">
+                                In attesa di un{' '}
+                                <span className="gold-text">
+                                    {role === 'transmitter' ? 'Ricevitore' : 'Trasmettitore'}
+                                </span>
                             </h2>
-                            <p className="text-text-secondary text-xl font-medium">
+                            <p className="text-text-secondary text-base md:text-xl font-medium">
                                 Stabilizzazione della connessione neurale in corso.
                             </p>
                         </motion.div>
