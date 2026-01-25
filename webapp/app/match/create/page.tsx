@@ -15,7 +15,8 @@ import {
     Hexagon,
     Plus,
     Heart,
-    Moon
+    Moon,
+    Radio
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -34,7 +35,7 @@ const SHAPES = [
 
 export default function CreateMatch() {
     const router = useRouter();
-    const [level, setLevel] = useState(3);
+    const [level, setLevel] = useState(2);
     const [role, setRole] = useState<"transmitter" | "receiver">("transmitter");
     const [selectedShape, setSelectedShape] = useState<string | null>(null);
 
@@ -55,185 +56,305 @@ export default function CreateMatch() {
     const availableShapes = SHAPES.slice(0, level);
 
     return (
-        <main className="page-container py-20">
-            <div className="max-w-xl mx-auto space-y-24">
-                <Link href="/" className="inline-flex items-center gap-2 text-text-secondary hover:text-primary transition-colors mb-8">
-                    <ArrowLeft className="w-5 h-5" />
-                    <span className="font-bold tracking-widest uppercase text-xs">Torna alla Home</span>
-                </Link>
+        <main className="page-container py-8 md:py-12">
+            {/* Animated psychedelic orbs */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                <motion.div
+                    className="absolute top-[10%] left-[5%] w-[35%] h-[35%] rounded-full bg-primary opacity-[0.12] blur-[100px]"
+                    animate={{
+                        scale: [1, 1.4, 1],
+                        x: [0, 60, 0],
+                    }}
+                    transition={{
+                        duration: 18,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                    }}
+                />
+                <motion.div
+                    className="absolute bottom-[15%] right-[10%] w-[40%] h-[40%] rounded-full bg-secondary opacity-[0.1] blur-[120px]"
+                    animate={{
+                        scale: [1, 1.3, 1],
+                        y: [0, -40, 0],
+                    }}
+                    transition={{
+                        duration: 15,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                    }}
+                />
+            </div>
 
-                <div className="space-y-8">
-                    <h1 className="text-6xl md:text-7xl font-black tracking-tighter leading-none">
+            <div className="w-full max-w-3xl mx-auto space-y-10 md:space-y-16 relative z-10 px-4">
+                <motion.div
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                >
+                    <Link href="/" className="inline-flex items-center gap-2 text-text-secondary hover:text-primary transition-colors group">
+                        <motion.div
+                            whileHover={{ x: -5 }}
+                            transition={{ type: "spring", stiffness: 300 }}
+                        >
+                            <ArrowLeft className="w-5 h-5" />
+                        </motion.div>
+                        <span className="font-bold tracking-wider uppercase text-xs">Torna alla Home</span>
+                    </Link>
+                </motion.div>
+
+                <motion.div
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 }}
+                    className="space-y-6"
+                >
+                    <motion.h1
+                        className="text-6xl md:text-7xl font-bold tracking-tight leading-none"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.3 }}
+                    >
                         CONFIGURA <br />
                         <span className="gold-text">PARTITA</span>
-                    </h1>
-                    <p className="text-text-secondary text-xl font-medium tracking-wide">
+                    </motion.h1>
+                    <motion.p
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.5 }}
+                        className="text-text-secondary text-lg font-medium tracking-wide"
+                    >
                         Inizializzazione dei parametri dell'esperimento telepatetico.
-                    </p>
-                </div>
+                    </motion.p>
+                </motion.div>
 
-                <div className="space-y-40 pb-40">
-                    {/* Livello */}
-                    <section className="space-y-12">
-                        <div className="flex items-center gap-3 text-xs font-black uppercase tracking-[0.5em] text-primary/80">
+                <div className="space-y-12 md:space-y-20 pb-12 md:pb-20">
+                    {/* Level Selection */}
+                    <motion.section
+                        initial={{ opacity: 0, y: 40 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.6 }}
+                        className="space-y-8"
+                    >
+                        <div className="flex items-center gap-3 text-xs font-bold uppercase tracking-[0.3em] text-primary">
                             <Settings2 className="w-5 h-5" />
                             <span>1. Livello di difficoltà</span>
                         </div>
                         <div className="grid grid-cols-3 gap-6">
-                            {[3, 6, 9].map((l) => (
-                                <button
+                            {[2, 4, 8].map((l, idx) => (
+                                <motion.button
                                     key={l}
+                                    initial={{ opacity: 0, scale: 0.8 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    transition={{ delay: 0.7 + (idx * 0.1), type: "spring" }}
                                     onClick={() => {
                                         setLevel(l);
                                         setSelectedShape(null);
                                     }}
-                                    className={`p-10 border-4 transition-all duration-300 ${level === l
-                                        ? "bg-primary border-primary text-white shadow-[0_0_40px_rgba(76,40,224,0.4)] scale-105"
-                                        : "bg-surface border-white/5 text-text-secondary hover:border-white/20"
-                                        }`}
-                                    style={{ borderRadius: '0' }}
+                                    whileHover={{ scale: 1.05, rotate: 2 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    className={`p-12 border-4 transition-all duration-300 ${
+                                        level === l
+                                            ? "bg-primary border-primary text-black shadow-[0_0_60px_rgba(224,40,165,0.5)]"
+                                            : "bg-glass border-white/10 text-text-secondary hover:border-primary/30"
+                                    }`}
+                                    style={{ borderRadius: '24px' }}
                                 >
-                                    <div className="text-4xl font-black leading-none">{l}</div>
-                                    <div className="text-[10px] uppercase font-black tracking-[0.2em] mt-2">Forme</div>
-                                </button>
+                                    <div className="text-5xl font-bold leading-none">{l}</div>
+                                    <div className="text-[10px] uppercase font-bold tracking-[0.2em] mt-3 opacity-70">
+                                        Forme
+                                    </div>
+                                </motion.button>
                             ))}
                         </div>
-                    </section>
+                    </motion.section>
 
-                    {/* Ruolo */}
-                    <section className="space-y-12">
-                        <div className="flex items-center gap-3 text-xs font-black uppercase tracking-[0.5em] text-primary/80">
-                            <Users className="w-5 h-5" />
+                    {/* Role Selection */}
+                    <motion.section
+                        initial={{ opacity: 0, y: 40 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 1 }}
+                        className="space-y-8"
+                    >
+                        <div className="flex items-center gap-3 text-xs font-bold uppercase tracking-[0.3em] text-primary">
+                            <Radio className="w-5 h-5" />
                             <span>2. Il tuo ruolo neurale</span>
                         </div>
-                        <div className="grid grid-cols-2 gap-8">
-                            <button
+                        <div className="flex items-center justify-center gap-3 md:gap-12">
+                            <motion.button
+                                initial={{ opacity: 0, x: -30 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: 1.1, type: "spring" }}
                                 onClick={() => setRole("transmitter")}
-                                className={`p-12 border-4 transition-all duration-300 flex flex-col items-center gap-8 ${role === "transmitter"
-                                    ? "bg-primary border-primary text-white shadow-[0_0_40px_rgba(76,40,224,0.4)] scale-105"
-                                    : "bg-surface border-white/5 text-text-secondary hover:border-white/20"
-                                    }`}
-                                style={{ borderRadius: '0' }}
+                                whileHover={{ scale: 1.03, rotate: -1 }}
+                                whileTap={{ scale: 0.97 }}
+                                className={`flex-1 max-w-[160px] md:max-w-[200px] p-4 md:p-10 border-2 md:border-4 transition-all duration-300 flex flex-col items-center gap-3 md:gap-6 ${
+                                    role === "transmitter"
+                                        ? "bg-primary border-primary text-black shadow-[0_0_60px_rgba(224,40,165,0.5)]"
+                                        : "bg-glass border-white/10 text-text-secondary hover:border-primary/30"
+                                }`}
+                                style={{ borderRadius: '24px' }}
                             >
-                                <div className={`p-5 ${role === 'transmitter' ? 'bg-white/20' : 'bg-white/5'}`}>
-                                    <Target className="w-10 h-10" />
+                                <div className={`p-3 md:p-5 rounded-2xl ${role === 'transmitter' ? 'bg-black/20' : 'bg-white/5'}`}>
+                                    <Target className="w-8 h-8 md:w-10 md:h-10" />
                                 </div>
                                 <div className="text-center">
-                                    <div className="font-black text-2xl uppercase tracking-widest">Trasmettitore</div>
-                                    <div className={`text-[11px] uppercase font-black tracking-[0.3em] mt-3 ${role === 'transmitter' ? 'text-white/70' : 'opacity-40'}`}>Proiezione Mentale</div>
+                                    <div className="font-bold text-base md:text-xl uppercase tracking-wider">Trasmettitore</div>
                                 </div>
-                            </button>
+                            </motion.button>
 
-                            <button
+                            <motion.button
+                                initial={{ opacity: 0, x: 30 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: 1.2, type: "spring" }}
                                 onClick={() => {
                                     setRole("receiver");
                                     setSelectedShape(null);
                                 }}
-                                className={`p-12 border-4 transition-all duration-300 flex flex-col items-center gap-8 ${role === "receiver"
-                                    ? "bg-primary border-primary text-white shadow-[0_0_40px_rgba(76,40,224,0.4)] scale-105"
-                                    : "bg-surface border-white/5 text-text-secondary hover:border-white/20"
-                                    }`}
-                                style={{ borderRadius: '0' }}
+                                whileHover={{ scale: 1.03, rotate: 1 }}
+                                whileTap={{ scale: 0.97 }}
+                                className={`flex-1 max-w-[160px] md:max-w-[200px] p-4 md:p-10 border-2 md:border-4 transition-all duration-300 flex flex-col items-center gap-3 md:gap-6 ${
+                                    role === "receiver"
+                                        ? "bg-secondary border-secondary text-white shadow-[0_0_60px_rgba(137,40,224,0.5)]"
+                                        : "bg-glass border-white/10 text-text-secondary hover:border-secondary/30"
+                                }`}
+                                style={{ borderRadius: '24px' }}
                             >
-                                <div className={`p-5 ${role === 'receiver' ? 'bg-white/20' : 'bg-white/5'}`}>
-                                    <Eye className="w-10 h-10" />
+                                <div className={`p-3 md:p-5 rounded-2xl ${role === 'receiver' ? 'bg-white/20' : 'bg-white/5'}`}>
+                                    <Eye className="w-8 h-8 md:w-10 md:h-10" />
                                 </div>
                                 <div className="text-center">
-                                    <div className="font-black text-2xl uppercase tracking-widest">Ricevitore</div>
-                                    <div className={`text-[11px] uppercase font-black tracking-[0.3em] mt-3 ${role === 'receiver' ? 'text-white/70' : 'opacity-40'}`}>Percezione Sensoriale</div>
+                                    <div className="font-bold text-base md:text-xl uppercase tracking-wider">Ricevitore</div>
                                 </div>
-                            </button>
+                            </motion.button>
                         </div>
-                    </section>
+                    </motion.section>
 
-                    {/* Forma (Solo per Trasmettitore) */}
+                    {/* Shape Selection (Transmitter Only) */}
                     <AnimatePresence>
                         {role === 'transmitter' && (
                             <motion.section
-                                initial={{ opacity: 0, y: 30 }}
+                                key={`shapes-${level}`}
+                                initial={{ opacity: 0, y: 40 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: 30 }}
-                                className="space-y-16"
+                                exit={{ opacity: 0, y: 40 }}
+                                transition={{ duration: 0.5 }}
+                                className="space-y-8"
                             >
-                                <div className="flex items-center gap-3 text-xs font-black uppercase tracking-[0.5em] text-primary/80">
+                                <div className="flex items-center gap-3 text-xs font-bold uppercase tracking-[0.3em] text-primary">
                                     <Target className="w-5 h-5" />
                                     <span>3. Selezione della Forma Target</span>
                                 </div>
-                                <div className="grid grid-cols-3 gap-10">
-                                    {availableShapes.map((shape) => (
-                                        <button
-                                            key={shape.id}
-                                            type="button"
-                                            onClick={() => setSelectedShape(shape.id)}
-                                            className={`aspect-square flex items-center justify-center transition-all duration-300 p-8 border-4 ${selectedShape === shape.id
-                                                ? "bg-primary border-primary shadow-[0_0_60px_rgba(76,40,224,0.5)] scale-110 z-10"
-                                                : "bg-white text-black border-transparent hover:scale-105 hover:shadow-xl"
+                                <div className="grid grid-cols-2 md:grid-cols-3 gap-1">
+                                    {availableShapes.map((shape, idx) => {
+                                        const ShapeIcon = shape.icon;
+                                        return (
+                                            <motion.button
+                                                key={shape.id}
+                                                initial={{ opacity: 0, scale: 0.8 }}
+                                                animate={{ opacity: 1, scale: 1 }}
+                                                transition={{
+                                                    delay: idx * 0.05,
+                                                    type: "spring",
+                                                    stiffness: 200
+                                                }}
+                                                type="button"
+                                                onClick={() => setSelectedShape(shape.id)}
+                                                whileHover={{
+                                                    scale: 1.05,
+                                                }}
+                                                whileTap={{ scale: 0.95 }}
+                                                className={`aspect-square flex items-center justify-center transition-all duration-300 p-4 md:p-6 ${
+                                                    selectedShape === shape.id
+                                                        ? "bg-primary text-black shadow-[0_0_80px_rgba(224,40,165,0.6)]"
+                                                        : "bg-white text-black hover:shadow-xl"
                                                 }`}
-                                            style={{ borderRadius: '0' }}
-                                        >
-                                            <shape.icon style={{ width: '90%', height: '90%' }} fill="currentColor" />
-                                        </button>
-                                    ))}
+                                                style={{ borderRadius: '0' }}
+                                            >
+                                                <ShapeIcon
+                                                    style={{ width: '85%', height: '85%' }}
+                                                    fill="currentColor"
+                                                    stroke="none"
+                                                />
+                                            </motion.button>
+                                        );
+                                    })}
                                 </div>
-                                {selectedShape && (
-                                    <div className="text-center space-y-4">
-                                        <div className="h-px w-20 bg-primary/30 mx-auto" />
-                                        <p className="text-sm text-primary animate-pulse font-black tracking-[0.8em] uppercase">
-                                            MANIFESTAZIONE BLOCCATA
-                                        </p>
-                                    </div>
-                                )}
+                                <AnimatePresence>
+                                    {selectedShape && (
+                                        <motion.div
+                                            initial={{ opacity: 0, y: -10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, y: -10 }}
+                                            className="text-center space-y-4"
+                                        >
+                                            <div className="h-px w-24 bg-primary/40 mx-auto" />
+                                            <motion.p
+                                                className="text-sm text-primary font-bold tracking-[0.5em] uppercase"
+                                                animate={{
+                                                    opacity: [0.5, 1, 0.5],
+                                                }}
+                                                transition={{
+                                                    duration: 2,
+                                                    repeat: Infinity,
+                                                    ease: "easeInOut",
+                                                }}
+                                            >
+                                                MANIFESTAZIONE BLOCCATA
+                                            </motion.p>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
                             </motion.section>
                         )}
                     </AnimatePresence>
 
-                    <div className="flex flex-col items-center gap-16 pt-24 border-t-4 border-white/5">
-                        <button
+                    {/* Create Match CTA */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 40 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: role === 'transmitter' ? 2 : 1.4 }}
+                        className="flex flex-col items-center gap-12 pt-16 border-t-2 border-white/5"
+                    >
+                        <motion.button
                             onClick={handleCreate}
                             disabled={role === 'transmitter' && !selectedShape}
-                            className={`w-full md:w-[500px] py-12 text-4xl tracking-[0.5em] font-black uppercase transition-all duration-500 shadow-[0_30px_70px_rgba(76,40,224,0.4)] ${role === 'transmitter' && !selectedShape
-                                    ? "bg-white/5 text-white/10 grayscale cursor-not-allowed opacity-30"
-                                    : "bg-primary text-white hover:scale-105 active:scale-95"
-                                }`}
-                            style={{ borderRadius: '0' }}
+                            whileHover={role === 'transmitter' && !selectedShape ? {} : { scale: 1.05 }}
+                            whileTap={role === 'transmitter' && !selectedShape ? {} : { scale: 0.95 }}
+                            className={`w-full max-w-lg py-6 md:py-10 text-lg md:text-2xl tracking-[0.2em] md:tracking-[0.3em] font-bold uppercase transition-all duration-500 ${
+                                role === 'transmitter' && !selectedShape
+                                    ? "bg-white/5 text-white/20 cursor-not-allowed opacity-40"
+                                    : "bg-primary text-black hover:shadow-[0_20px_80px_rgba(224,40,165,0.5)]"
+                            }`}
+                            style={{ borderRadius: '999px' }}
                         >
                             CREA PARTITA
-                        </button>
+                        </motion.button>
+
                         <div className="space-y-4 text-center">
-                            <p className="text-[14px] text-text-secondary/60 uppercase font-black tracking-[0.6em] leading-relaxed">
+                            <p className="text-[12px] text-text-secondary/60 uppercase font-bold tracking-[0.4em] leading-relaxed">
                                 TRANSMISSIONE <br /> PROTOCOLLO SINC
                             </p>
-                            <div className="flex justify-center gap-4">
-                                <div className="w-2 h-2 bg-primary/40 animate-ping" />
-                                <div className="w-2 h-2 bg-primary/40 animate-ping delay-75" />
-                                <div className="w-2 h-2 bg-primary/40 animate-ping delay-150" />
+                            <div className="flex justify-center gap-3">
+                                {[0, 1, 2].map((i) => (
+                                    <motion.div
+                                        key={i}
+                                        className="w-2 h-2 rounded-full bg-primary/60"
+                                        animate={{
+                                            scale: [1, 1.5, 1],
+                                            opacity: [0.3, 1, 0.3],
+                                        }}
+                                        transition={{
+                                            duration: 2,
+                                            repeat: Infinity,
+                                            ease: "easeInOut",
+                                            delay: i * 0.3,
+                                        }}
+                                    />
+                                ))}
                             </div>
                         </div>
-                    </div>
+                    </motion.div>
                 </div>
             </div>
         </main>
-    );
-}
-
-function Users({ className }: { className?: string }) {
-    return (
-        <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className={className}
-        >
-            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-            <circle cx="9" cy="7" r="4" />
-            <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-        </svg>
     );
 }
