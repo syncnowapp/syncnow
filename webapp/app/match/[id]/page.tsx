@@ -418,7 +418,7 @@ function MatchContent({ params }: { params: Promise<{ id: string }> }) {
                                     {gameMode === 'shapes' ? 'Forma Selezionata' : 'Colore Selezionato'}
                                 </div>
                                 <div
-                                    className="w-72 h-72 flex items-center justify-center shadow-2xl p-12 rounded-3xl"
+                                    className="w-80 h-80 md:w-96 md:h-96 flex items-center justify-center shadow-2xl p-8 md:p-10 rounded-3xl"
                                     style={{
                                         backgroundColor: gameMode === 'colors'
                                             ? COLOR_OPTIONS.find(c => c.id === selectedItem)?.hex
@@ -514,7 +514,7 @@ function MatchContent({ params }: { params: Promise<{ id: string }> }) {
 
                         <div className="space-y-6 max-w-3xl">
                             <h2 className="text-6xl font-bold uppercase tracking-tight text-white">
-                                Sincronizzazione
+                                {role === 'transmitter' ? 'Preparati a Trasmettere' : 'Preparati a Ricevere'}
                             </h2>
                             <p className="text-text-secondary italic text-2xl leading-relaxed font-medium">
                                 {role === 'transmitter'
@@ -553,7 +553,7 @@ function MatchContent({ params }: { params: Promise<{ id: string }> }) {
                                     Trasmissione in Corso
                                 </div>
                                 <div
-                                    className="w-[85vmin] h-[85vmin] md:w-[70vmin] md:h-[70vmin] max-w-[700px] max-h-[700px] flex items-center justify-center shadow-2xl p-12 md:p-16 rounded-3xl"
+                                    className="w-[90vmin] h-[90vmin] md:w-[75vmin] md:h-[75vmin] max-w-[800px] max-h-[800px] flex items-center justify-center shadow-2xl p-8 md:p-12 rounded-3xl"
                                     style={{
                                         backgroundColor: gameMode === 'colors'
                                             ? COLOR_OPTIONS.find(c => c.id === selectedItem)?.hex
