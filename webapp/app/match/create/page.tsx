@@ -10,7 +10,8 @@ import {
     Square,
     Triangle,
     Radio,
-    Palette
+    Palette,
+    Shapes
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -29,53 +30,26 @@ const COLOR_OPTIONS = [
 
 export default function CreateMatch() {
     const router = useRouter();
+    const [gameMode, setGameMode] = useState<'shapes' | 'colors' | null>(null);
     const [role, setRole] = useState<"transmitter" | "receiver">("transmitter");
-    const [selectedShapes, setSelectedShapes] = useState<string[]>([]);
-    const [selectedColors, setSelectedColors] = useState<string[]>([]);
-    const [selectedCombination, setSelectedCombination] = useState<string | null>(null);
-
-    const toggleShape = (shapeId: string) => {
-        if (selectedShapes.includes(shapeId)) {
-            setSelectedShapes(selectedShapes.filter(s => s !== shapeId));
-        } else if (selectedShapes.length < 3) {
-            setSelectedShapes([...selectedShapes, shapeId]);
-        }
-    };
-
-    const toggleColor = (colorId: string) => {
-        if (selectedColors.includes(colorId)) {
-            setSelectedColors(selectedColors.filter(c => c !== colorId));
-        } else if (selectedColors.length < 3) {
-            setSelectedColors([...selectedColors, colorId]);
-        }
-    };
+    const [selectedItem, setSelectedItem] = useState<string | null>(null);
 
     const handleCreate = () => {
-        if (role === 'transmitter' && !selectedCombination) return;
-        if (selectedShapes.length !== 3 || selectedColors.length !== 3) return;
+        if (!gameMode) return;
+        if (role === 'transmitter' && !selectedItem) return;
 
         const matchId = Math.random().toString(36).substring(7).toUpperCase();
-        let targetUrl = `/match/${matchId}?role=${role}&shapes=${selectedShapes.join(',')}&colors=${selectedColors.join(',')}`;
+        let targetUrl = `/match/${matchId}?role=${role}&mode=${gameMode}`;
 
-        if (role === 'transmitter' && selectedCombination) {
-            targetUrl += `&combination=${selectedCombination}`;
+        if (role === 'transmitter' && selectedItem) {
+            targetUrl += `&item=${selectedItem}`;
         }
 
         console.log("Redirecting to:", targetUrl);
         window.location.assign(targetUrl);
     };
 
-    // Generate combinations (shape + color)
-    const combinations = selectedShapes.length === 3 && selectedColors.length === 3
-        ? selectedShapes.map((shape, idx) => ({
-            shape,
-            color: selectedColors[idx],
-            id: `${shape}-${selectedColors[idx]}`
-        }))
-        : [];
-
-    const isReady = selectedShapes.length === 3 && selectedColors.length === 3;
-    const canCreate = isReady && (role === 'receiver' || selectedCombination);
+    const canCreate = gameMode && (role === 'receiver' || selectedItem);
 
     return (
         <main className="page-container py-8 md:py-12">
@@ -149,7 +123,7 @@ export default function CreateMatch() {
                 </motion.div>
 
                 <div className="space-y-12 md:space-y-20 pb-12 md:pb-20">
-                    {/* Shape Selection */}
+                    {/* Game Mode Selection */}
                     <motion.section
                         initial={{ opacity: 0, y: 40 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -158,47 +132,62 @@ export default function CreateMatch() {
                     >
                         <div className="flex items-center gap-3 text-xs font-bold uppercase tracking-[0.3em] text-primary">
                             <Target className="w-5 h-5" />
-                            <span>1. Scegli 3 trame</span>
+                            <span>1. Scegli la modalità</span>
                         </div>
-                        <div className="grid grid-cols-3 gap-4">
-                            {SHAPE_OPTIONS.map((shape, idx) => {
-                                const ShapeIcon = shape.icon;
-                                const isSelected = selectedShapes.includes(shape.id);
-                                return (
-                                    <motion.button
-                                        key={shape.id}
-                                        initial={{ opacity: 0, scale: 0.8 }}
-                                        animate={{ opacity: 1, scale: 1 }}
-                                        transition={{ delay: 0.7 + (idx * 0.1), type: "spring" }}
-                                        onClick={() => toggleShape(shape.id)}
-                                        whileHover={{ scale: 1.05 }}
-                                        whileTap={{ scale: 0.95 }}
-                                        className={`aspect-square flex flex-col items-center justify-center gap-3 transition-all duration-300 p-6 md:p-8 ${
-                                            isSelected
-                                                ? "bg-primary shadow-[0_0_60px_rgba(224,40,165,0.5)]"
-                                                : "bg-white hover:shadow-xl"
-                                        }`}
-                                        style={{ borderRadius: '0' }}
-                                    >
-                                        <ShapeIcon
-                                            style={{ width: '60%', height: '60%' }}
-                                            className="text-black"
-                                            fill="currentColor"
-                                            stroke="none"
-                                        />
-                                        <span className="text-[9px] md:text-[10px] font-bold uppercase tracking-wider text-black">
-                                            {shape.label}
-                                        </span>
-                                    </motion.button>
-                                );
-                            })}
+                        <div className="grid grid-cols-2 gap-6">
+                            <motion.button
+                                initial={{ opacity: 0, scale: 0.8 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ delay: 0.7, type: "spring" }}
+                                onClick={() => {
+                                    setGameMode('shapes');
+                                    setSelectedItem(null);
+                                }}
+                                whileHover={{ scale: 1.05, rotate: -1 }}
+                                whileTap={{ scale: 0.95 }}
+                                className={`p-10 md:p-12 border-4 transition-all duration-300 flex flex-col items-center gap-6 ${
+                                    gameMode === 'shapes'
+                                        ? "bg-primary border-primary text-black shadow-[0_0_60px_rgba(224,40,165,0.5)]"
+                                        : "bg-glass border-white/10 text-text-secondary hover:border-primary/30"
+                                }`}
+                                style={{ borderRadius: '24px' }}
+                            >
+                                <div className={`p-5 rounded-2xl ${gameMode === 'shapes' ? 'bg-black/20' : 'bg-white/5'}`}>
+                                    <Shapes className="w-10 h-10 md:w-12 md:h-12" />
+                                </div>
+                                <div className="text-center">
+                                    <div className="font-bold text-xl md:text-2xl uppercase tracking-wider">Forme</div>
+                                </div>
+                            </motion.button>
+
+                            <motion.button
+                                initial={{ opacity: 0, scale: 0.8 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ delay: 0.8, type: "spring" }}
+                                onClick={() => {
+                                    setGameMode('colors');
+                                    setSelectedItem(null);
+                                }}
+                                whileHover={{ scale: 1.05, rotate: 1 }}
+                                whileTap={{ scale: 0.95 }}
+                                className={`p-10 md:p-12 border-4 transition-all duration-300 flex flex-col items-center gap-6 ${
+                                    gameMode === 'colors'
+                                        ? "bg-secondary border-secondary text-white shadow-[0_0_60px_rgba(137,40,224,0.5)]"
+                                        : "bg-glass border-white/10 text-text-secondary hover:border-secondary/30"
+                                }`}
+                                style={{ borderRadius: '24px' }}
+                            >
+                                <div className={`p-5 rounded-2xl ${gameMode === 'colors' ? 'bg-white/20' : 'bg-white/5'}`}>
+                                    <Palette className="w-10 h-10 md:w-12 md:h-12" />
+                                </div>
+                                <div className="text-center">
+                                    <div className="font-bold text-xl md:text-2xl uppercase tracking-wider">Colori</div>
+                                </div>
+                            </motion.button>
                         </div>
-                        <p className="text-center text-xs text-text-secondary/60">
-                            Seleziona tutte e 3 le forme
-                        </p>
                     </motion.section>
 
-                    {/* Color Selection */}
+                    {/* Role Selection */}
                     <motion.section
                         initial={{ opacity: 0, y: 40 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -206,59 +195,14 @@ export default function CreateMatch() {
                         className="space-y-8"
                     >
                         <div className="flex items-center gap-3 text-xs font-bold uppercase tracking-[0.3em] text-primary">
-                            <Palette className="w-5 h-5" />
-                            <span>2. Scegli 3 colori</span>
-                        </div>
-                        <div className="grid grid-cols-3 gap-4">
-                            {COLOR_OPTIONS.map((color, idx) => {
-                                const isSelected = selectedColors.includes(color.id);
-                                return (
-                                    <motion.button
-                                        key={color.id}
-                                        initial={{ opacity: 0, scale: 0.8 }}
-                                        animate={{ opacity: 1, scale: 1 }}
-                                        transition={{ delay: 1 + (idx * 0.1), type: "spring" }}
-                                        onClick={() => toggleColor(color.id)}
-                                        whileHover={{ scale: 1.05 }}
-                                        whileTap={{ scale: 0.95 }}
-                                        className={`aspect-square flex flex-col items-center justify-center gap-3 transition-all duration-300 p-6 md:p-8 ${
-                                            isSelected
-                                                ? "shadow-[0_0_60px_rgba(224,40,165,0.4)] border-4 border-white"
-                                                : "hover:shadow-xl border-4 border-transparent"
-                                        }`}
-                                        style={{
-                                            backgroundColor: color.hex,
-                                            borderRadius: '0'
-                                        }}
-                                    >
-                                        <span className="text-xs md:text-sm font-bold uppercase tracking-wider text-white drop-shadow-lg">
-                                            {color.label}
-                                        </span>
-                                    </motion.button>
-                                );
-                            })}
-                        </div>
-                        <p className="text-center text-xs text-text-secondary/60">
-                            Seleziona tutti e 3 i colori
-                        </p>
-                    </motion.section>
-
-                    {/* Role Selection */}
-                    <motion.section
-                        initial={{ opacity: 0, y: 40 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 1.2 }}
-                        className="space-y-8"
-                    >
-                        <div className="flex items-center gap-3 text-xs font-bold uppercase tracking-[0.3em] text-primary">
                             <Radio className="w-5 h-5" />
-                            <span>3. Il tuo ruolo</span>
+                            <span>2. Il tuo ruolo</span>
                         </div>
                         <div className="flex items-center justify-center gap-3 md:gap-12">
                             <motion.button
                                 initial={{ opacity: 0, x: -30 }}
                                 animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: 1.3, type: "spring" }}
+                                transition={{ delay: 1, type: "spring" }}
                                 onClick={() => setRole("transmitter")}
                                 whileHover={{ scale: 1.03, rotate: -1 }}
                                 whileTap={{ scale: 0.97 }}
@@ -280,10 +224,10 @@ export default function CreateMatch() {
                             <motion.button
                                 initial={{ opacity: 0, x: 30 }}
                                 animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: 1.4, type: "spring" }}
+                                transition={{ delay: 1.1, type: "spring" }}
                                 onClick={() => {
                                     setRole("receiver");
-                                    setSelectedCombination(null);
+                                    setSelectedItem(null);
                                 }}
                                 whileHover={{ scale: 1.03, rotate: 1 }}
                                 whileTap={{ scale: 0.97 }}
@@ -304,11 +248,11 @@ export default function CreateMatch() {
                         </div>
                     </motion.section>
 
-                    {/* Combination Selection (Transmitter Only) */}
+                    {/* Item Selection (Transmitter Only) */}
                     <AnimatePresence>
-                        {role === 'transmitter' && isReady && (
+                        {role === 'transmitter' && gameMode && (
                             <motion.section
-                                key="combinations"
+                                key={`selection-${gameMode}`}
                                 initial={{ opacity: 0, y: 40 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: 40 }}
@@ -317,45 +261,53 @@ export default function CreateMatch() {
                             >
                                 <div className="flex items-center gap-3 text-xs font-bold uppercase tracking-[0.3em] text-primary">
                                     <Target className="w-5 h-5" />
-                                    <span>4. Scegli l'immagine da trasmettere</span>
+                                    <span>3. Scegli {gameMode === 'shapes' ? 'la forma' : 'il colore'} da trasmettere</span>
                                 </div>
                                 <div className="grid grid-cols-3 gap-2">
-                                    {combinations.map((combo, idx) => {
-                                        const ShapeIcon = SHAPE_OPTIONS.find(s => s.id === combo.shape)?.icon || Circle;
-                                        const color = COLOR_OPTIONS.find(c => c.id === combo.color);
-                                        const isSelected = selectedCombination === combo.id;
+                                    {(gameMode === 'shapes' ? SHAPE_OPTIONS : COLOR_OPTIONS).map((item, idx) => {
+                                        const isShape = 'icon' in item;
+                                        const ShapeIcon = isShape ? item.icon : Circle;
+                                        const isSelected = selectedItem === item.id;
 
                                         return (
                                             <motion.button
-                                                key={combo.id}
+                                                key={item.id}
                                                 initial={{ opacity: 0, scale: 0.8 }}
                                                 animate={{ opacity: 1, scale: 1 }}
-                                                transition={{ delay: idx * 0.05, type: "spring" }}
-                                                onClick={() => setSelectedCombination(combo.id)}
+                                                transition={{ delay: idx * 0.08, type: "spring" }}
+                                                onClick={() => setSelectedItem(item.id)}
                                                 whileHover={{ scale: 1.05 }}
                                                 whileTap={{ scale: 0.95 }}
                                                 className={`aspect-square flex items-center justify-center transition-all duration-300 p-4 md:p-6 ${
                                                     isSelected
                                                         ? "shadow-[0_0_80px_rgba(224,40,165,0.6)] border-4 border-white"
+                                                        : isShape
+                                                        ? "bg-white hover:shadow-xl border-4 border-transparent"
                                                         : "hover:shadow-xl border-4 border-transparent"
                                                 }`}
                                                 style={{
-                                                    backgroundColor: color?.hex,
+                                                    backgroundColor: !isShape ? (item as typeof COLOR_OPTIONS[0]).hex : undefined,
                                                     borderRadius: '0'
                                                 }}
                                             >
-                                                <ShapeIcon
-                                                    style={{ width: '85%', height: '85%' }}
-                                                    className="text-white drop-shadow-2xl"
-                                                    fill="currentColor"
-                                                    stroke="none"
-                                                />
+                                                {isShape ? (
+                                                    <ShapeIcon
+                                                        style={{ width: '85%', height: '85%' }}
+                                                        className="text-black"
+                                                        fill="currentColor"
+                                                        stroke="none"
+                                                    />
+                                                ) : (
+                                                    <span className="text-sm md:text-base font-bold uppercase tracking-wider text-white drop-shadow-2xl">
+                                                        {item.label}
+                                                    </span>
+                                                )}
                                             </motion.button>
                                         );
                                     })}
                                 </div>
                                 <AnimatePresence>
-                                    {selectedCombination && (
+                                    {selectedItem && (
                                         <motion.div
                                             initial={{ opacity: 0, y: -10 }}
                                             animate={{ opacity: 1, y: 0 }}
@@ -387,7 +339,7 @@ export default function CreateMatch() {
                     <motion.div
                         initial={{ opacity: 0, y: 40 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: role === 'transmitter' ? 2 : 1.6 }}
+                        transition={{ delay: role === 'transmitter' ? 1.5 : 1.2 }}
                         className="flex flex-col items-center gap-12 pt-16 border-t-2 border-white/5"
                     >
                         <motion.button
