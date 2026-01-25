@@ -273,14 +273,17 @@ export default function CreateMatch() {
                                             <motion.button
                                                 key={item.id}
                                                 initial={{ opacity: 0, scale: 0.8 }}
-                                                animate={{ opacity: 1, scale: 1 }}
+                                                animate={{
+                                                    opacity: 1,
+                                                    scale: isSelected ? 1.08 : 1
+                                                }}
                                                 transition={{ delay: idx * 0.08, type: "spring" }}
                                                 onClick={() => setSelectedItem(item.id)}
-                                                whileHover={{ scale: 1.05 }}
+                                                whileHover={{ scale: isSelected ? 1.08 : 1.05 }}
                                                 whileTap={{ scale: 0.95 }}
                                                 className={`aspect-square flex items-center justify-center transition-all duration-300 p-4 md:p-6 ${
                                                     isSelected
-                                                        ? "shadow-[0_0_80px_rgba(224,40,165,0.6)] border-4 border-white"
+                                                        ? "shadow-[0_0_100px_rgba(224,40,165,0.8),0_0_40px_rgba(224,40,165,1)] border-[6px] border-primary"
                                                         : isShape
                                                         ? "bg-white hover:shadow-xl border-4 border-transparent"
                                                         : "hover:shadow-xl border-4 border-transparent"
