@@ -663,7 +663,7 @@ function MatchContent({ params }: { params: Promise<{ id: string }> }) {
                                         : "bg-white/5 text-text-secondary border-white/20"
                                 }`}
                             >
-                                {selectedItem === transmittedItem ? "Connessione Stabilita" : "Segnale Interrotto"}
+                                {selectedItem === transmittedItem ? "Trasmissione Riuscita" : "Trasmissione Fallita"}
                             </motion.div>
                         </motion.div>
 
@@ -671,14 +671,14 @@ function MatchContent({ params }: { params: Promise<{ id: string }> }) {
                             initial={{ opacity: 0, y: 30 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.4 }}
-                            className="flex flex-col md:flex-row items-center gap-12 md:gap-24"
+                            className="flex flex-col md:flex-row items-center gap-12 md:gap-24 w-full px-4 pt-12"
                         >
-                            <div className="text-center space-y-6">
+                            <div className="text-center space-y-6 w-full md:w-auto">
                                 <div className="text-xs uppercase font-bold tracking-[0.4em] text-text-secondary">
                                     Trasmesso
                                 </div>
                                 <div
-                                    className="w-72 h-72 flex items-center justify-center shadow-2xl p-12 rounded-3xl"
+                                    className="w-[80vw] h-[80vw] md:w-80 md:h-80 max-w-[400px] max-h-[400px] mx-auto flex items-center justify-center shadow-2xl p-8 md:p-10 rounded-3xl"
                                     style={{
                                         backgroundColor: gameMode === 'colors'
                                             ? COLOR_OPTIONS.find(c => c.id === selectedItem)?.hex
@@ -697,12 +697,12 @@ function MatchContent({ params }: { params: Promise<{ id: string }> }) {
                                 </div>
                             </div>
 
-                            <div className="text-center space-y-6">
+                            <div className="text-center space-y-6 w-full md:w-auto">
                                 <div className="text-xs uppercase font-bold tracking-[0.4em] text-text-secondary">
                                     Ricevuto
                                 </div>
                                 <div
-                                    className={`w-72 h-72 flex items-center justify-center shadow-2xl p-12 rounded-3xl ${
+                                    className={`w-[80vw] h-[80vw] md:w-80 md:h-80 max-w-[400px] max-h-[400px] mx-auto flex items-center justify-center shadow-2xl p-8 md:p-10 rounded-3xl ${
                                         selectedItem === transmittedItem
                                             ? "border-8 border-primary/60"
                                             : "border-8 border-white/20"
