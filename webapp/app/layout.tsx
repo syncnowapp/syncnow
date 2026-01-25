@@ -1,15 +1,17 @@
 import type { Metadata } from "next";
-import { Outfit, Inter } from "next/font/google";
+import { Syne, DM_Sans } from "next/font/google";
 import "./globals.css";
 
-const outfit = Outfit({
+const syne = Syne({
   subsets: ["latin"],
-  variable: "--font-outfit",
+  variable: "--font-syne",
+  weight: ["400", "500", "600", "700", "800"],
 });
 
-const inter = Inter({
+const dmSans = DM_Sans({
   subsets: ["latin"],
-  variable: "--font-inter",
+  variable: "--font-dm-sans",
+  weight: ["400", "500", "700"],
 });
 
 export const metadata: Metadata = {
@@ -23,7 +25,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="it" className={`${outfit.variable} ${inter.variable}`}>
+    <html lang="it" className={`${syne.variable} ${dmSans.variable}`}>
       <body>
         <div className="bg-radial-gradient" />
         {children}
