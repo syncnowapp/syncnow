@@ -279,6 +279,116 @@ function MatchContent({ params }: { params: Promise<{ id: string }> }) {
         );
     }
 
+    // Durante transmission, usiamo un layout fullscreen senza page-container
+    if (gameState === 'transmission') {
+        // Calcola dimensione quadrato: 96% del minore tra larghezza e altezza viewport
+        const squareSize = typeof window !== 'undefined'
+            ? Math.min(window.innerWidth, window.innerHeight) * 0.92
+            : 400;
+
+        return (
+            <main
+                className="fixed inset-0 flex items-center justify-center overflow-hidden"
+                style={{ backgroundColor: '#000000' }}
+            >
+                {/* Timer compatto - position absolute rispetto al main che è relative */}
+                <div
+                    className="absolute left-1/2 flex items-center gap-2 text-primary px-6 py-2 border-2 border-primary/30 rounded-full z-20"
+                    style={{
+                        top: '16px',
+                        transform: 'translateX(-50%)',
+                        backgroundColor: 'rgba(224, 40, 165, 0.1)',
+                        backdropFilter: 'blur(12px)'
+                    }}
+                >
+                    <Clock className="w-5 h-5" />
+                    <span className="font-bold tabular-nums text-xl tracking-tight">{timer}S</span>
+                </div>
+
+                {role === 'transmitter' ? (
+                    <div
+                        className="flex items-center justify-center shadow-2xl rounded-3xl overflow-hidden"
+                        style={{
+                            width: `min(92vw, 92vh)`,
+                            height: `min(92vw, 92vh)`,
+                            backgroundColor: gameMode === 'colors'
+                                ? COLOR_OPTIONS.find(c => c.id === selectedItem)?.hex
+                                : 'white'
+                        }}
+                    >
+                        {gameMode === 'shapes' && (() => {
+                            const ShapeIcon = SHAPES.find(s => s.id === selectedItem)?.icon || Circle;
+                            return (
+                                <ShapeIcon
+                                    width="92%"
+                                    height="92%"
+                                    style={{ color: '#000000' }}
+                                    fill="currentColor"
+                                    strokeWidth={0}
+                                />
+                            );
+                        })()}
+                        {gameMode === 'colors' && (
+                            <span className="text-5xl md:text-7xl font-bold uppercase tracking-wider text-white drop-shadow-2xl">
+                                {COLOR_OPTIONS.find(c => c.id === selectedItem)?.label}
+                            </span>
+                        )}
+                    </div>
+                ) : (
+                    <div className="flex flex-col items-center space-y-8 w-full max-w-4xl px-4">
+                        <div className="text-2xl font-bold uppercase tracking-[0.4em] text-text-secondary">
+                            Cosa Percepisci?
+                        </div>
+                        <div className="grid grid-cols-3 gap-4 md:gap-8 w-full">
+                            {availableItems.map((item, idx) => {
+                                const isShape = item.type === 'shape';
+                                const ShapeIcon = isShape ? item.icon : null;
+                                const colorHex = !isShape ? (item as any).hex : null;
+                                const label = !isShape ? (item as any).label : null;
+                                return (
+                                    <motion.button
+                                        key={item.id}
+                                        initial={{ opacity: 0, scale: 0.8 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        transition={{ delay: idx * 0.05, type: "spring" }}
+                                        onClick={() => handleReceiverChoice(item.id)}
+                                        whileHover={{ scale: 1.1 }}
+                                        whileTap={{ scale: 0.9 }}
+                                        className="aspect-square border-4 flex items-center justify-center transition-all p-2 md:p-3 rounded-3xl"
+                                        style={{
+                                            backgroundColor: transmittedItem === item.id
+                                                ? '#E028A5'
+                                                : (isShape ? 'rgba(255, 255, 255, 0.95)' : colorHex),
+                                            borderColor: transmittedItem === item.id ? 'white' : 'transparent',
+                                            boxShadow: transmittedItem === item.id
+                                                ? '0 0 80px rgba(224,40,165,0.6)'
+                                                : 'none'
+                                        }}
+                                    >
+                                        {isShape && ShapeIcon && (
+                                            <ShapeIcon
+                                                width="100%"
+                                                height="100%"
+                                                style={{ color: '#000000' }}
+                                                fill="currentColor"
+                                                strokeWidth={0}
+                                            />
+                                        )}
+                                        {!isShape && (
+                                            <span className="text-xl md:text-2xl font-bold uppercase tracking-wider text-white drop-shadow-2xl">
+                                                {label}
+                                            </span>
+                                        )}
+                                    </motion.button>
+                                );
+                            })}
+                        </div>
+                    </div>
+                )}
+            </main>
+        );
+    }
+
     return (
         <main className="page-container">
             {/* Floating animated orbs */}
@@ -312,7 +422,7 @@ function MatchContent({ params }: { params: Promise<{ id: string }> }) {
             <motion.header
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="flex items-center justify-between mb-16 w-full max-w-6xl mx-auto relative z-10"
+                className={`flex items-center justify-between w-full max-w-6xl mx-auto relative z-10 ${gameState === 'transmission' ? 'hidden' : 'mb-16'}`}
             >
                 <div className="flex items-center gap-3">
                     <motion.div
@@ -615,28 +725,23 @@ function MatchContent({ params }: { params: Promise<{ id: string }> }) {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="flex-1 flex flex-col items-center justify-center space-y-16 w-full relative z-10"
+                        className="flex-1 flex flex-col items-center justify-center gap-4 w-full relative z-10 py-4"
                     >
+                        {/* Timer compatto */}
                         <motion.div
                             initial={{ scale: 0.9, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
-                            className="flex items-center gap-5 text-primary bg-primary/10 px-10 py-6 border-2 border-primary/30 backdrop-blur-xl rounded-full"
+                            className="flex items-center gap-2 text-primary bg-primary/10 px-6 py-2 border-2 border-primary/30 backdrop-blur-xl rounded-full"
                         >
-                            <Clock className="w-8 h-8" />
-                            <span className="font-bold tabular-nums text-4xl tracking-tight">{timer}S</span>
+                            <Clock className="w-5 h-5" />
+                            <span className="font-bold tabular-nums text-xl tracking-tight">{timer}S</span>
                         </motion.div>
 
                         {role === 'transmitter' ? (
-                            <motion.div
-                                initial={{ scale: 0.9, opacity: 0 }}
-                                animate={{ scale: 1, opacity: 1 }}
-                                className="flex flex-col items-center space-y-12"
-                            >
-                                <div className="text-2xl font-bold uppercase tracking-[0.4em] text-text-secondary">
-                                    Trasmissione in Corso
-                                </div>
+                            <>
+                                {/* Quadrato MASSIMO - nessun titolo o testo sotto */}
                                 <div
-                                    className="w-[90vmin] h-[90vmin] md:w-[75vmin] md:h-[75vmin] max-w-[800px] max-h-[800px] flex items-center justify-center shadow-2xl p-8 md:p-12 rounded-3xl"
+                                    className="w-[min(96vw,calc(100vh-80px))] h-[min(96vw,calc(100vh-80px))] flex items-center justify-center shadow-2xl rounded-3xl overflow-hidden"
                                     style={{
                                         backgroundColor: gameMode === 'colors'
                                             ? COLOR_OPTIONS.find(c => c.id === selectedItem)?.hex
@@ -645,7 +750,11 @@ function MatchContent({ params }: { params: Promise<{ id: string }> }) {
                                 >
                                     {gameMode === 'shapes' && (() => {
                                         const ShapeIcon = SHAPES.find(s => s.id === selectedItem)?.icon || Circle;
-                                        return <ShapeIcon style={{ width: '100%', height: '100%', color: '#000000' }} fill="currentColor" />;
+                                        return (
+                                            <div className="w-[96%] h-[96%]">
+                                                <ShapeIcon className="w-full h-full" style={{ color: '#000000' }} fill="currentColor" strokeWidth={0} />
+                                            </div>
+                                        );
                                     })()}
                                     {gameMode === 'colors' && (
                                         <span className="text-5xl md:text-7xl font-bold uppercase tracking-wider text-white drop-shadow-2xl">
@@ -653,10 +762,7 @@ function MatchContent({ params }: { params: Promise<{ id: string }> }) {
                                         </span>
                                     )}
                                 </div>
-                                <p className="text-text-secondary text-lg font-medium italic uppercase tracking-[0.2em]">
-                                    Concentrati su questa immagine.
-                                </p>
-                            </motion.div>
+                            </>
                         ) : (
                             <motion.div
                                 initial={{ opacity: 0 }}
@@ -684,7 +790,7 @@ function MatchContent({ params }: { params: Promise<{ id: string }> }) {
                                                     rotate: 5,
                                                 }}
                                                 whileTap={{ scale: 0.9 }}
-                                                className={`aspect-square border-4 flex items-center justify-center transition-all p-8 rounded-3xl ${
+                                                className={`aspect-square border-4 flex items-center justify-center transition-all p-2 md:p-3 rounded-3xl ${
                                                     transmittedItem === item.id
                                                         ? "border-white shadow-[0_0_80px_rgba(224,40,165,0.6)]"
                                                         : "border-transparent hover:shadow-[0_20px_60px_rgba(255,255,255,0.3)]"
@@ -697,7 +803,7 @@ function MatchContent({ params }: { params: Promise<{ id: string }> }) {
                                             >
                                                 {isShape && ShapeIcon && (
                                                     <ShapeIcon
-                                                        style={{ width: '70%', height: '70%', color: '#000000' }}
+                                                        style={{ width: '100%', height: '100%', color: '#000000' }}
                                                         fill="currentColor"
                                                     />
                                                 )}
@@ -758,7 +864,7 @@ function MatchContent({ params }: { params: Promise<{ id: string }> }) {
                                     Trasmesso
                                 </div>
                                 <div
-                                    className="w-[60vw] h-[60vw] md:w-80 md:h-80 max-w-[400px] max-h-[400px] mx-auto flex items-center justify-center shadow-2xl p-8 md:p-10 rounded-3xl"
+                                    className="w-[90vmin] h-[90vmin] md:w-[85vmin] md:h-[85vmin] mx-auto flex items-center justify-center shadow-2xl p-1 md:p-2 rounded-3xl"
                                     style={{
                                         backgroundColor: gameMode === 'colors'
                                             ? COLOR_OPTIONS.find(c => c.id === selectedItem)?.hex
@@ -782,7 +888,7 @@ function MatchContent({ params }: { params: Promise<{ id: string }> }) {
                                     Ricevuto
                                 </div>
                                 <div
-                                    className={`w-[60vw] h-[60vw] md:w-80 md:h-80 max-w-[400px] max-h-[400px] mx-auto flex items-center justify-center shadow-2xl p-8 md:p-10 rounded-3xl ${
+                                    className={`w-[90vmin] h-[90vmin] md:w-[85vmin] md:h-[85vmin] mx-auto flex items-center justify-center shadow-2xl p-1 md:p-2 rounded-3xl ${
                                         selectedItem === transmittedItem
                                             ? "border-8 border-primary/60"
                                             : "border-8 border-white/20"
@@ -843,7 +949,7 @@ function MatchContent({ params }: { params: Promise<{ id: string }> }) {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 1.5 }}
-                className="mt-20 pt-8 border-t-2 border-white/5 flex flex-col md:flex-row justify-between items-center gap-4 text-[10px] font-bold tracking-[0.3em] uppercase text-text-secondary/30 pb-12 w-full max-w-6xl mx-auto relative z-10"
+                className={`mt-20 pt-8 border-t-2 border-white/5 flex flex-col md:flex-row justify-between items-center gap-4 text-[10px] font-bold tracking-[0.3em] uppercase text-text-secondary/30 pb-12 w-full max-w-6xl mx-auto relative z-10 ${gameState === 'transmission' ? 'hidden' : ''}`}
             >
                 <div className="flex gap-6">
                     <span>SyncNow v0.1</span>
