@@ -15,6 +15,8 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { supabase } from '@/lib/supabase';
+import { generateMatchId } from '@/lib/matchHelpers';
 
 const SHAPE_OPTIONS = [
     { id: 'circle', icon: Circle, label: 'Cerchio' },
@@ -34,19 +36,39 @@ export default function CreateMatch() {
     const [role, setRole] = useState<"transmitter" | "receiver">("transmitter");
     const [selectedItem, setSelectedItem] = useState<string | null>(null);
 
-    const handleCreate = () => {
+    const handleCreate = async () => {
         if (!gameMode) return;
         if (role === 'transmitter' && !selectedItem) return;
 
-        const matchId = Math.random().toString(36).substring(7).toUpperCase();
-        let targetUrl = `/match/${matchId}?role=${role}&mode=${gameMode}`;
+        try {
+            const matchId = generateMatchId();
+            console.log('🎮 Creating match with ID:', matchId);
 
-        if (role === 'transmitter' && selectedItem) {
-            targetUrl += `&item=${selectedItem}`;
+            // Crea match in Supabase
+            const { data, error } = await supabase
+                .from('matches')
+                .insert({
+                    id: matchId,
+                    game_mode: gameMode,
+                    selected_item: role === 'transmitter' ? selectedItem : null,
+                    state: 'lobby'
+                })
+                .select()
+                .single();
+
+            if (error) {
+                console.error('❌ Insert error:', error);
+                throw error;
+            }
+
+            console.log('✅ Match created:', data);
+
+            // Naviga al match
+            router.push(`/match/${matchId}?role=${role}&mode=${gameMode}${role === 'transmitter' && selectedItem ? `&item=${selectedItem}` : ''}`);
+        } catch (error) {
+            console.error('Failed to create match:', error);
+            alert('Errore nella creazione del match. Riprova.');
         }
-
-        console.log("Redirecting to:", targetUrl);
-        window.location.assign(targetUrl);
     };
 
     const canCreate = gameMode && (role === 'receiver' || selectedItem);
