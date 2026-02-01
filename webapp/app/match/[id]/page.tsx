@@ -422,7 +422,7 @@ function MatchContent({ params }: { params: Promise<{ id: string }> }) {
             <motion.header
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className={`flex items-center justify-between w-full max-w-6xl mx-auto relative z-10 ${gameState === 'transmission' ? 'hidden' : 'mb-16'}`}
+                className="flex items-center justify-between mb-16 w-full max-w-6xl mx-auto relative z-10"
             >
                 <div className="flex items-center gap-3">
                     <motion.div
@@ -718,112 +718,6 @@ function MatchContent({ params }: { params: Promise<{ id: string }> }) {
                     </motion.div>
                 )}
 
-                {/* TRANSMISSION STATE */}
-                {gameState === 'transmission' && (
-                    <motion.div
-                        key="transmission"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="flex-1 flex flex-col items-center justify-center gap-4 w-full relative z-10 py-4"
-                    >
-                        {/* Timer compatto */}
-                        <motion.div
-                            initial={{ scale: 0.9, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            className="flex items-center gap-2 text-primary bg-primary/10 px-6 py-2 border-2 border-primary/30 backdrop-blur-xl rounded-full"
-                        >
-                            <Clock className="w-5 h-5" />
-                            <span className="font-bold tabular-nums text-xl tracking-tight">{timer}S</span>
-                        </motion.div>
-
-                        {role === 'transmitter' ? (
-                            <>
-                                {/* Quadrato MASSIMO - nessun titolo o testo sotto */}
-                                <div
-                                    className="w-[min(96vw,calc(100vh-80px))] h-[min(96vw,calc(100vh-80px))] flex items-center justify-center shadow-2xl rounded-3xl overflow-hidden"
-                                    style={{
-                                        backgroundColor: gameMode === 'colors'
-                                            ? COLOR_OPTIONS.find(c => c.id === selectedItem)?.hex
-                                            : 'white'
-                                    }}
-                                >
-                                    {gameMode === 'shapes' && (() => {
-                                        const ShapeIcon = SHAPES.find(s => s.id === selectedItem)?.icon || Circle;
-                                        return (
-                                            <div className="w-[96%] h-[96%]">
-                                                <ShapeIcon className="w-full h-full" style={{ color: '#000000' }} fill="currentColor" strokeWidth={0} />
-                                            </div>
-                                        );
-                                    })()}
-                                    {gameMode === 'colors' && (
-                                        <span className="text-5xl md:text-7xl font-bold uppercase tracking-wider text-white drop-shadow-2xl">
-                                            {COLOR_OPTIONS.find(c => c.id === selectedItem)?.label}
-                                        </span>
-                                    )}
-                                </div>
-                            </>
-                        ) : (
-                            <motion.div
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                className="flex flex-col items-center space-y-12 w-full"
-                            >
-                                <div className="text-2xl font-bold uppercase tracking-[0.4em] text-text-secondary">
-                                    Cosa Percepisci?
-                                </div>
-                                <div className="grid grid-cols-3 gap-8 w-full max-w-4xl">
-                                    {availableItems.map((item, idx) => {
-                                        const isShape = item.type === 'shape';
-                                        const ShapeIcon = isShape ? item.icon : null;
-                                        const colorHex = !isShape ? (item as any).hex : null;
-                                        const label = !isShape ? (item as any).label : null;
-                                        return (
-                                            <motion.button
-                                                key={item.id}
-                                                initial={{ opacity: 0, scale: 0.8 }}
-                                                animate={{ opacity: 1, scale: 1 }}
-                                                transition={{ delay: idx * 0.05, type: "spring" }}
-                                                onClick={() => handleReceiverChoice(item.id)}
-                                                whileHover={{
-                                                    scale: 1.1,
-                                                    rotate: 5,
-                                                }}
-                                                whileTap={{ scale: 0.9 }}
-                                                className={`aspect-square border-4 flex items-center justify-center transition-all p-2 md:p-3 rounded-3xl ${
-                                                    transmittedItem === item.id
-                                                        ? "border-white shadow-[0_0_80px_rgba(224,40,165,0.6)]"
-                                                        : "border-transparent hover:shadow-[0_20px_60px_rgba(255,255,255,0.3)]"
-                                                }`}
-                                                style={{
-                                                    backgroundColor: transmittedItem === item.id
-                                                        ? '#E028A5'
-                                                        : (isShape ? 'rgba(255, 255, 255, 0.95)' : colorHex)
-                                                }}
-                                            >
-                                                {isShape && ShapeIcon && (
-                                                    <ShapeIcon
-                                                        style={{ width: '100%', height: '100%', color: '#000000' }}
-                                                        fill="currentColor"
-                                                    />
-                                                )}
-                                                {!isShape && (
-                                                    <span className="text-xl md:text-2xl font-bold uppercase tracking-wider text-white drop-shadow-2xl">
-                                                        {label}
-                                                    </span>
-                                                )}
-                                            </motion.button>
-                                        );
-                                    })}
-                                </div>
-                                <p className="text-text-secondary text-lg font-medium italic uppercase tracking-[0.2em] pt-6">
-                                    Scegli {gameMode === 'shapes' ? 'la forma' : 'il colore'} che si è manifestato.
-                                </p>
-                            </motion.div>
-                        )}
-                    </motion.div>
-                )}
-
                 {/* RESULT STATE */}
                 {gameState === 'result' && (
                     <motion.div
@@ -949,7 +843,7 @@ function MatchContent({ params }: { params: Promise<{ id: string }> }) {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 1.5 }}
-                className={`mt-20 pt-8 border-t-2 border-white/5 flex flex-col md:flex-row justify-between items-center gap-4 text-[10px] font-bold tracking-[0.3em] uppercase text-text-secondary/30 pb-12 w-full max-w-6xl mx-auto relative z-10 ${gameState === 'transmission' ? 'hidden' : ''}`}
+                className="mt-20 pt-8 border-t-2 border-white/5 flex flex-col md:flex-row justify-between items-center gap-4 text-[10px] font-bold tracking-[0.3em] uppercase text-text-secondary/30 pb-12 w-full max-w-6xl mx-auto relative z-10"
             >
                 <div className="flex gap-6">
                     <span>SyncNow v0.1</span>
