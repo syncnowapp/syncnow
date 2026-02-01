@@ -21,6 +21,8 @@ import {
     Share2
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { MatchRealtimeManager, Match } from '@/lib/realtime';
+import { supabase } from '@/lib/supabase';
 
 const SHAPES = [
     { id: 'circle', icon: Circle },
@@ -40,7 +42,7 @@ const COLOR_OPTIONS = [
     { id: 'red', hex: '#DC143C', label: 'Rosso' },
 ];
 
-type GameState = 'lobby' | 'sync' | 'transmission' | 'result';
+type GameState = 'lobby' | 'sync' | 'transmission' | 'result' | 'completed';
 
 function MatchContent({ params }: { params: Promise<{ id: string }> }) {
     const resolvedParams = use(params);
@@ -58,45 +60,77 @@ function MatchContent({ params }: { params: Promise<{ id: string }> }) {
     const [isReady, setIsReady] = useState(false);
     const [partnerReady, setPartnerReady] = useState(false);
     const [isMounted, setIsMounted] = useState(false);
+    const [realtimeManager, setRealtimeManager] = useState<MatchRealtimeManager | null>(null);
+    const [serverMatch, setServerMatch] = useState<Match | null>(null);
 
+    // Fetch initial match state + setup Realtime subscription
     useEffect(() => {
         if (!isMounted) return;
 
-        const syncKey = `match_${resolvedParams.id}_ready`;
-        const dataKey = `match_${resolvedParams.id}_data`;
+        async function initMatch() {
+            // 1. Fetch match dal database
+            const { data: match, error } = await supabase
+                .from('matches')
+                .select('*')
+                .eq('id', resolvedParams.id)
+                .single();
 
-        const updateSync = () => {
-            const currentReady = JSON.parse(localStorage.getItem(syncKey) || '{}');
-            const currentData = JSON.parse(localStorage.getItem(dataKey) || '{}');
-
-            if (role === 'transmitter') {
-                setPartnerReady(!!currentReady.receiver);
-                if (currentData.receiverChoice) {
-                    setTransmittedItem(currentData.receiverChoice);
-                    if (gameState === 'transmission') setGameState('result');
-                }
-            } else {
-                setPartnerReady(!!currentReady.transmitter);
-                if (currentData.transmitterChoice) setSelectedItem(currentData.transmitterChoice);
+            if (error || !match) {
+                console.error('Match not found:', error);
+                return;
             }
-        };
 
-        const myReady = JSON.parse(localStorage.getItem(syncKey) || '{}');
-        localStorage.setItem(syncKey, JSON.stringify({
-            ...myReady,
-            [role]: isReady
-        }));
+            // 2. Set initial state dal server
+            setServerMatch(match);
+            setGameState(match.state);
+            setPartnerReady(
+                role === 'transmitter' ? match.receiver_ready : match.transmitter_ready
+            );
 
-        const currentData = JSON.parse(localStorage.getItem(dataKey) || '{}');
-        if (role === 'transmitter' && selectedItem) {
-            localStorage.setItem(dataKey, JSON.stringify({ ...currentData, transmitterChoice: selectedItem }));
-        } else if (role === 'receiver' && transmittedItem) {
-            localStorage.setItem(dataKey, JSON.stringify({ ...currentData, receiverChoice: transmittedItem }));
+            if (role === 'receiver' && match.selected_item) {
+                setSelectedItem(match.selected_item);
+            }
+
+            // 3. Setup Realtime subscription
+            const manager = new MatchRealtimeManager(resolvedParams.id);
+
+            manager.subscribe({
+                onMatchUpdate: (updatedMatch) => {
+                    console.log('🔄 Match update received:', updatedMatch);
+                    setServerMatch(updatedMatch);
+                    setGameState(updatedMatch.state);
+                    const newPartnerReady = role === 'transmitter' ? updatedMatch.receiver_ready : updatedMatch.transmitter_ready;
+                    console.log('👥 Partner ready:', newPartnerReady);
+                    setPartnerReady(newPartnerReady);
+
+                    if (role === 'receiver' && updatedMatch.selected_item) {
+                        setSelectedItem(updatedMatch.selected_item);
+                    }
+
+                    if (role === 'transmitter' && updatedMatch.receiver_choice) {
+                        setTransmittedItem(updatedMatch.receiver_choice);
+                    }
+
+                    // Update timer from server time
+                    if (updatedMatch.phase_started_at && updatedMatch.phase_duration) {
+                        const remaining = manager.getRemainingTime(updatedMatch);
+                        setTimer(remaining);
+                    }
+                },
+                onError: (error) => {
+                    console.error('Realtime error:', error);
+                }
+            });
+
+            setRealtimeManager(manager);
         }
 
-        const interval = setInterval(updateSync, 500);
-        return () => clearInterval(interval);
-    }, [isReady, role, isMounted, resolvedParams.id, selectedItem, transmittedItem, gameState]);
+        initMatch();
+
+        return () => {
+            realtimeManager?.unsubscribe();
+        };
+    }, [isMounted, resolvedParams.id, role]);
 
     useEffect(() => {
         setIsMounted(true);
@@ -117,23 +151,72 @@ function MatchContent({ params }: { params: Promise<{ id: string }> }) {
     }, [isReady, partnerReady, gameState]);
 
     useEffect(() => {
-        let interval: NodeJS.Timeout;
-        if (gameState === 'sync' && timer > 0) {
-            interval = setInterval(() => setTimer(t => t - 1), 1000);
-        } else if (gameState === 'sync' && timer === 0) {
-            setGameState('transmission');
-            setTimer(30);
-        } else if (gameState === 'transmission' && timer > 0) {
-            interval = setInterval(() => setTimer(t => t - 1), 1000);
-        } else if (gameState === 'transmission' && timer === 0) {
-            setGameState('result');
-        }
-        return () => clearInterval(interval);
-    }, [gameState, timer]);
+        if (!serverMatch || gameState === 'lobby' || gameState === 'result') return;
 
-    const toggleReady = () => {
+        const interval = setInterval(() => {
+            if (realtimeManager && serverMatch) {
+                const remaining = realtimeManager.getRemainingTime(serverMatch);
+                setTimer(remaining);
+
+                if (remaining <= 0) {
+                    // Auto-transition (uno dei due client triggera)
+                    if (gameState === 'sync') {
+                        realtimeManager.transitionState('transmission', 30);
+                    } else if (gameState === 'transmission') {
+                        realtimeManager.transitionState('result');
+                    }
+                }
+            }
+        }, 100);
+
+        return () => clearInterval(interval);
+    }, [gameState, serverMatch, realtimeManager]);
+
+    const toggleReady = async () => {
         if (role === 'transmitter' && !selectedItem) return;
-        setIsReady(!isReady);
+        if (!realtimeManager) return;
+
+        const newReadyState = !isReady;
+        setIsReady(newReadyState);
+
+        try {
+            console.log(`🎯 ${role} setting ready to:`, newReadyState);
+            await realtimeManager.setReady(role, newReadyState);
+            console.log(`✅ Ready state updated. Partner ready:`, partnerReady);
+
+            // Check if both ready, then transition
+            if (newReadyState && partnerReady) {
+                console.log('🚀 Both ready! Transitioning to sync...');
+                await realtimeManager.transitionState('sync', 10);
+            }
+        } catch (error) {
+            setIsReady(!newReadyState);
+            console.error('Failed to update ready state:', error);
+        }
+    };
+
+    const handleReceiverChoice = async (choice: string) => {
+        if (!realtimeManager) return;
+
+        try {
+            await realtimeManager.submitReceiverChoice(choice);
+            setTransmittedItem(choice);
+
+            // Save round result
+            const isCorrect = choice === selectedItem;
+            await supabase.from('rounds').insert({
+                match_id: resolvedParams.id,
+                game_mode: gameMode,
+                selected_item: selectedItem!,
+                receiver_choice: choice,
+                is_correct: isCorrect
+            });
+
+            // Transition to result
+            await realtimeManager.transitionState('result');
+        } catch (error) {
+            console.error('Failed to submit choice:', error);
+        }
     };
 
     const copyUrl = () => {
@@ -595,10 +678,7 @@ function MatchContent({ params }: { params: Promise<{ id: string }> }) {
                                                 initial={{ opacity: 0, scale: 0.8 }}
                                                 animate={{ opacity: 1, scale: 1 }}
                                                 transition={{ delay: idx * 0.05, type: "spring" }}
-                                                onClick={() => {
-                                                    setTransmittedItem(item.id);
-                                                    setGameState('result');
-                                                }}
+                                                onClick={() => handleReceiverChoice(item.id)}
                                                 whileHover={{
                                                     scale: 1.1,
                                                     rotate: 5,
