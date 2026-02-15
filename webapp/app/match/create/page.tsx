@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { supabase } from '@/lib/supabase';
+import { createMatch } from '@/lib/api';
 import { generateMatchId } from '@/lib/matchHelpers';
 
 const SHAPE_OPTIONS = [
@@ -44,22 +44,11 @@ export default function CreateMatch() {
             const matchId = generateMatchId();
             console.log('🎮 Creating match with ID:', matchId);
 
-            // Crea match in Supabase
-            const { data, error } = await supabase
-                .from('matches')
-                .insert({
-                    id: matchId,
-                    game_mode: gameMode,
-                    selected_item: role === 'transmitter' ? selectedItem : null,
-                    state: 'lobby'
-                })
-                .select()
-                .single();
-
-            if (error) {
-                console.error('❌ Insert error:', error);
-                throw error;
-            }
+            const data = await createMatch({
+                id: matchId,
+                gameMode: gameMode,
+                selectedItem: role === 'transmitter' ? selectedItem : null,
+            });
 
             console.log('✅ Match created:', data);
 

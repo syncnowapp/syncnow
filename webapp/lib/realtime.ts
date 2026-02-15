@@ -1,5 +1,5 @@
-import { supabase } from './supabase';
-import { RealtimeChannel } from '@supabase/supabase-js';
+import { getSocket, disconnectSocket } from './socket';
+import { Socket } from 'socket.io-client';
 
 export type MatchState = 'lobby' | 'sync' | 'transmission' | 'result' | 'completed';
 export type GameMode = 'shapes' | 'colors';
@@ -19,101 +19,92 @@ export interface Match {
 
 export interface MatchSubscriptionCallbacks {
   onMatchUpdate: (match: Match) => void;
-  onError?: (error: any) => void;
+  onTimerTick?: (remainingSeconds: number) => void;
+  onResult?: (result: { isCorrect: boolean; selectedItem: string; receiverChoice: string | null }) => void;
+  onPlayerJoined?: (role: string) => void;
+  onPlayerLeft?: (role: string) => void;
+  onError?: (error: Error) => void;
 }
 
 export class MatchRealtimeManager {
-  private channel: RealtimeChannel | null = null;
+  private socket: Socket | null = null;
   private matchId: string;
+  private lastTickRemaining: number = 0;
 
   constructor(matchId: string) {
     this.matchId = matchId;
   }
 
-  subscribe(callbacks: MatchSubscriptionCallbacks) {
-    this.channel = supabase
-      .channel(`match:${this.matchId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'matches',
-          filter: `id=eq.${this.matchId}`
-        },
-        (payload) => {
-          callbacks.onMatchUpdate(payload.new as Match);
-        }
-      )
-      .subscribe((status) => {
-        if (status === 'SUBSCRIBED') {
-          console.log('✅ Realtime connected');
-        } else if (status === 'CHANNEL_ERROR') {
-          callbacks.onError?.(new Error('Subscription failed'));
-        }
-      });
+  subscribe(role: 'transmitter' | 'receiver', callbacks: MatchSubscriptionCallbacks) {
+    this.socket = getSocket();
 
-    return this.channel;
+    this.socket.on('match:updated', (match: Match) => {
+      callbacks.onMatchUpdate(match);
+    });
+
+    this.socket.on('match:timerTick', (data: { remainingSeconds: number }) => {
+      this.lastTickRemaining = data.remainingSeconds;
+      callbacks.onTimerTick?.(data.remainingSeconds);
+    });
+
+    this.socket.on('match:result', (result: { isCorrect: boolean; selectedItem: string; receiverChoice: string | null }) => {
+      callbacks.onResult?.(result);
+    });
+
+    this.socket.on('match:playerJoined', (data: { role: string }) => {
+      callbacks.onPlayerJoined?.(data.role);
+    });
+
+    this.socket.on('match:playerLeft', (data: { role: string }) => {
+      callbacks.onPlayerLeft?.(data.role);
+    });
+
+    this.socket.on('match:error', (data: { message: string }) => {
+      callbacks.onError?.(new Error(data.message));
+    });
+
+    this.socket.connect();
+    this.socket.emit('match:join', { matchId: this.matchId, role });
   }
 
   async unsubscribe() {
-    if (this.channel) {
-      await supabase.removeChannel(this.channel);
-      this.channel = null;
+    if (this.socket) {
+      this.socket.emit('match:leave', { matchId: this.matchId });
+      this.socket.removeAllListeners();
+      disconnectSocket();
+      this.socket = null;
     }
   }
 
-  async updateMatch(updates: Partial<Match>) {
-    const { data, error } = await supabase
-      .from('matches')
-      .update({
-        ...updates,
-        last_activity_at: new Date().toISOString()
-      })
-      .eq('id', this.matchId)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data as Match;
+  setReady(role: 'transmitter' | 'receiver', ready: boolean) {
+    this.socket?.emit('match:setReady', {
+      matchId: this.matchId,
+      role,
+      ready,
+    });
   }
 
-  async setReady(role: 'transmitter' | 'receiver', ready: boolean) {
-    const field = role === 'transmitter' ? 'transmitter_ready' : 'receiver_ready';
-    return this.updateMatch({ [field]: ready });
+  submitTransmitterChoice(item: string) {
+    this.socket?.emit('match:submitTransmitterChoice', {
+      matchId: this.matchId,
+      item,
+    });
   }
 
-  async transitionState(newState: MatchState, phaseDuration?: number) {
-    const updates: Partial<Match> = {
-      state: newState,
-      phase_started_at: new Date().toISOString(),
-      phase_duration: phaseDuration || null
-    };
-
-    if (newState === 'lobby') {
-      updates.transmitter_ready = false;
-      updates.receiver_ready = false;
-    }
-
-    return this.updateMatch(updates);
+  submitReceiverChoice(item: string) {
+    this.socket?.emit('match:submitReceiverChoice', {
+      matchId: this.matchId,
+      item,
+    });
   }
 
-  async submitTransmitterChoice(item: string) {
-    return this.updateMatch({ selected_item: item });
+  playAgain() {
+    this.socket?.emit('match:playAgain', {
+      matchId: this.matchId,
+    });
   }
 
-  async submitReceiverChoice(item: string) {
-    return this.updateMatch({ receiver_choice: item });
-  }
-
-  getRemainingTime(match: Match): number {
-    if (!match.phase_started_at || !match.phase_duration) return 0;
-
-    const startTime = new Date(match.phase_started_at).getTime();
-    const now = Date.now();
-    const elapsed = Math.floor((now - startTime) / 1000);
-    const remaining = Math.max(0, match.phase_duration - elapsed);
-
-    return remaining;
+  getRemainingTime(): number {
+    return this.lastTickRemaining;
   }
 }

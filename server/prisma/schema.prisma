@@ -1,0 +1,56 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum MatchState {
+  lobby
+  sync
+  transmission
+  result
+  completed
+}
+
+enum GameMode {
+  shapes
+  colors
+}
+
+model Match {
+  id               String     @id
+  gameMode         GameMode   @map("game_mode")
+  state            MatchState @default(lobby)
+  transmitterReady Boolean    @default(false) @map("transmitter_ready")
+  receiverReady    Boolean    @default(false) @map("receiver_ready")
+  selectedItem     String?    @map("selected_item")
+  receiverChoice   String?    @map("receiver_choice")
+  phaseStartedAt   DateTime?  @map("phase_started_at")
+  phaseDuration    Int?       @map("phase_duration")
+  lastActivityAt   DateTime   @default(now()) @map("last_activity_at")
+  createdAt        DateTime   @default(now()) @map("created_at")
+  updatedAt        DateTime   @updatedAt @map("updated_at")
+
+  rounds Round[]
+
+  @@map("matches")
+}
+
+model Round {
+  id             String   @id @default(cuid())
+  matchId        String   @map("match_id")
+  gameMode       GameMode @map("game_mode")
+  selectedItem   String   @map("selected_item")
+  receiverChoice String?  @map("receiver_choice")
+  isCorrect      Boolean? @map("is_correct")
+  responseTimeMs Int?     @map("response_time_ms")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  match Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  @@index([matchId])
+  @@map("rounds")
+}

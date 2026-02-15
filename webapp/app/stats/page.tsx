@@ -1,18 +1,48 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, BarChart3, TrendingUp, Target, Award, Brain, Zap } from "lucide-react";
 import Link from "next/link";
+import { getStats } from "@/lib/api";
+
+interface Stats {
+    totalRounds: number;
+    correctRounds: number;
+    accuracyPercent: number;
+    roundsByMode: {
+        shapes: { total: number; correct: number };
+        colors: { total: number; correct: number };
+    };
+    recentAccuracy: number[];
+}
 
 export default function StatsPage() {
-    const stats = [
-        { label: "Accuratezza Totale", value: "32%", icon: Target, color: "text-primary", bgColor: "bg-primary/10" },
-        { label: "Partite Completate", value: "12", icon: BarChart3, color: "text-secondary", bgColor: "bg-secondary/10" },
-        { label: "Record Corrette", value: "4", icon: Award, color: "text-accent", bgColor: "bg-accent/10" },
-        { label: "Miglioramento", value: "+5%", icon: TrendingUp, color: "text-primary", bgColor: "bg-primary/10" },
-    ];
+    const [statsData, setStatsData] = useState<Stats | null>(null);
+    const [loading, setLoading] = useState(true);
 
-    const weekData = [40, 25, 60, 30, 45, 20, 35];
+    useEffect(() => {
+        getStats()
+            .then((data) => setStatsData(data))
+            .catch((err) => console.error('Failed to fetch stats:', err))
+            .finally(() => setLoading(false));
+    }, []);
+
+    const stats = statsData
+        ? [
+            { label: "Accuratezza Totale", value: `${statsData.accuracyPercent}%`, icon: Target, color: "text-primary", bgColor: "bg-primary/10" },
+            { label: "Round Completati", value: `${statsData.totalRounds}`, icon: BarChart3, color: "text-secondary", bgColor: "bg-secondary/10" },
+            { label: "Risposte Corrette", value: `${statsData.correctRounds}`, icon: Award, color: "text-accent", bgColor: "bg-accent/10" },
+            { label: "Forme", value: `${statsData.roundsByMode.shapes.total > 0 ? Math.round((statsData.roundsByMode.shapes.correct / statsData.roundsByMode.shapes.total) * 100) : 0}%`, icon: TrendingUp, color: "text-primary", bgColor: "bg-primary/10" },
+        ]
+        : [
+            { label: "Accuratezza Totale", value: "-", icon: Target, color: "text-primary", bgColor: "bg-primary/10" },
+            { label: "Round Completati", value: "-", icon: BarChart3, color: "text-secondary", bgColor: "bg-secondary/10" },
+            { label: "Risposte Corrette", value: "-", icon: Award, color: "text-accent", bgColor: "bg-accent/10" },
+            { label: "Forme", value: "-", icon: TrendingUp, color: "text-primary", bgColor: "bg-primary/10" },
+        ];
+
+    const weekData = statsData?.recentAccuracy || [0, 0, 0, 0, 0, 0, 0];
 
     return (
         <main className="page-container">
@@ -71,96 +101,109 @@ export default function StatsPage() {
                     </p>
                 </motion.div>
 
-                {/* Stats Grid */}
-                <motion.div
-                    initial={{ opacity: 0, y: 40 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.4 }}
-                    className="grid grid-cols-2 gap-5"
-                >
-                    {stats.map((stat, i) => (
+                {loading ? (
+                    <motion.div
+                        animate={{ opacity: [0.5, 1, 0.5] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                        className="text-center text-primary font-bold uppercase tracking-[0.3em] py-20"
+                    >
+                        Caricamento dati...
+                    </motion.div>
+                ) : (
+                    <>
+                        {/* Stats Grid */}
                         <motion.div
-                            key={stat.label}
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ delay: 0.5 + (i * 0.1), type: "spring" }}
-                            whileHover={{ scale: 1.05, rotate: i % 2 === 0 ? 2 : -2 }}
-                            className="glass-card p-8 flex flex-col items-center text-center gap-5 hover:border-primary/50"
+                            initial={{ opacity: 0, y: 40 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.4 }}
+                            className="grid grid-cols-2 gap-5"
                         >
-                            <motion.div
-                                className={`p-4 rounded-2xl ${stat.bgColor} ${stat.color}`}
-                                whileHover={{ rotate: [0, -15, 15, 0], scale: 1.1 }}
-                                transition={{ duration: 0.5 }}
-                            >
-                                <stat.icon className="w-8 h-8" />
-                            </motion.div>
-                            <div>
-                                <div className="text-4xl font-bold mb-1">{stat.value}</div>
-                                <div className="text-[10px] uppercase font-bold tracking-widest text-text-secondary/70">
-                                    {stat.label}
-                                </div>
-                            </div>
-                        </motion.div>
-                    ))}
-                </motion.div>
-
-                {/* Temporal Chart */}
-                <motion.section
-                    initial={{ opacity: 0, y: 40 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.9 }}
-                    className="glass-card space-y-8"
-                >
-                    <div className="flex items-center justify-between">
-                        <h3 className="text-2xl font-bold">Andamento Temporale</h3>
-                        <Zap className="w-5 h-5 text-primary" />
-                    </div>
-
-                    <div className="h-56 flex items-end gap-3 px-4">
-                        {weekData.map((h, i) => (
-                            <motion.div
-                                key={i}
-                                initial={{ height: 0, opacity: 0 }}
-                                animate={{ height: `${h}%`, opacity: 1 }}
-                                transition={{
-                                    delay: 1.2 + (i * 0.08),
-                                    duration: 0.8,
-                                    type: "spring",
-                                    stiffness: 100
-                                }}
-                                whileHover={{
-                                    scale: 1.05,
-                                    filter: "brightness(1.3)"
-                                }}
-                                className="flex-1 rounded-t-lg relative group cursor-pointer"
-                                style={{
-                                    background: `linear-gradient(180deg, #E028A5 0%, #8928E0 100%)`,
-                                }}
-                            >
+                            {stats.map((stat, i) => (
                                 <motion.div
-                                    className="absolute -top-12 left-1/2 -translate-x-1/2 bg-black/80 text-white text-xs px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap border border-primary/30"
-                                    initial={{ y: 10 }}
-                                    whileHover={{ y: 0 }}
+                                    key={stat.label}
+                                    initial={{ opacity: 0, scale: 0.9 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    transition={{ delay: 0.5 + (i * 0.1), type: "spring" }}
+                                    whileHover={{ scale: 1.05, rotate: i % 2 === 0 ? 2 : -2 }}
+                                    className="glass-card p-8 flex flex-col items-center text-center gap-5 hover:border-primary/50"
                                 >
-                                    {h}% accuracy
+                                    <motion.div
+                                        className={`p-4 rounded-2xl ${stat.bgColor} ${stat.color}`}
+                                        whileHover={{ rotate: [0, -15, 15, 0], scale: 1.1 }}
+                                        transition={{ duration: 0.5 }}
+                                    >
+                                        <stat.icon className="w-8 h-8" />
+                                    </motion.div>
+                                    <div>
+                                        <div className="text-4xl font-bold mb-1">{stat.value}</div>
+                                        <div className="text-[10px] uppercase font-bold tracking-widest text-text-secondary/70">
+                                            {stat.label}
+                                        </div>
+                                    </div>
                                 </motion.div>
-                            </motion.div>
-                        ))}
-                    </div>
+                            ))}
+                        </motion.div>
 
-                    <div className="flex justify-between text-[10px] uppercase font-bold text-text-secondary/50 px-4">
-                        {['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'].map((day, i) => (
-                            <motion.span
-                                key={day}
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 1.2 + (i * 0.08) }}
-                            >
-                                {day}
-                            </motion.span>
-                        ))}
-                    </div>
-                </motion.section>
+                        {/* Temporal Chart */}
+                        <motion.section
+                            initial={{ opacity: 0, y: 40 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.9 }}
+                            className="glass-card space-y-8"
+                        >
+                            <div className="flex items-center justify-between">
+                                <h3 className="text-2xl font-bold">Andamento Temporale</h3>
+                                <Zap className="w-5 h-5 text-primary" />
+                            </div>
+
+                            <div className="h-56 flex items-end gap-3 px-4">
+                                {weekData.map((h, i) => (
+                                    <motion.div
+                                        key={i}
+                                        initial={{ height: 0, opacity: 0 }}
+                                        animate={{ height: `${h}%`, opacity: 1 }}
+                                        transition={{
+                                            delay: 1.2 + (i * 0.08),
+                                            duration: 0.8,
+                                            type: "spring",
+                                            stiffness: 100
+                                        }}
+                                        whileHover={{
+                                            scale: 1.05,
+                                            filter: "brightness(1.3)"
+                                        }}
+                                        className="flex-1 rounded-t-lg relative group cursor-pointer"
+                                        style={{
+                                            background: `linear-gradient(180deg, #E028A5 0%, #8928E0 100%)`,
+                                            minHeight: h > 0 ? '4px' : '0px',
+                                        }}
+                                    >
+                                        <motion.div
+                                            className="absolute -top-12 left-1/2 -translate-x-1/2 bg-black/80 text-white text-xs px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap border border-primary/30"
+                                            initial={{ y: 10 }}
+                                            whileHover={{ y: 0 }}
+                                        >
+                                            {h}% accuracy
+                                        </motion.div>
+                                    </motion.div>
+                                ))}
+                            </div>
+
+                            <div className="flex justify-between text-[10px] uppercase font-bold text-text-secondary/50 px-4">
+                                {['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'].map((day, i) => (
+                                    <motion.span
+                                        key={day}
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: 1.2 + (i * 0.08) }}
+                                    >
+                                        {day}
+                                    </motion.span>
+                                ))}
+                            </div>
+                        </motion.section>
+                    </>
+                )}
 
                 {/* Inspirational Quote */}
                 <motion.div

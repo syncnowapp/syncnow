@@ -1,2 +1,15 @@
 # Local Netlify folder
 .netlify
+
+# Dependencies
+server/node_modules/
+server/dist/
+
+# Environment files
+server/.env
+
+# Prisma
+server/prisma/migrations/
+
+# IDE
+.claude/plans/
